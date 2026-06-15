@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D1B2A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RIS">
+<link rel="manifest" href="manifest.json">
+<title>RIS — Reporte de Incidentes de Seguridad Patrimonial</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --navy:      #0D1B2A;
+  --navy-mid:  #162538;
+  --navy-light:#1E3A55;
+  --gold:      #C9A227;
+  --gold-lt:   #E2B830;
+  --gold-pale: #F5E8C0;
+  --steel:     #4A5568;
+  --steel-lt:  #718096;
+  --surface:   #F4F6F9;
+  --white:     #FFFFFF;
+  --border:    #DDE2EA;
+  --red:       #B83232;  --red-bg:#FCEAEA;
+  --orange:    #C96A1A;  --orange-bg:#FDF0E6;
+  --yellow:    #B8960C;  --yellow-bg:#FBF6E2;
+  --green:     #1A7A42;  --green-bg:#E8F5EE;
+  --blue:      #1A5276;  --blue-bg:#EBF3FA;
+  --font:'Inter',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:6px; --rl:12px;
+  --sh:0 1px 4px rgba(0,0,0,.08),0 2px 10px rgba(0,0,0,.06);
+  --sh2:0 4px 20px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--surface);color:var(--navy);min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+.topbar{background:var(--navy);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 .9rem;position:sticky;top:0;z-index:500;border-bottom:2px solid rgba(201,162,39,.3)}
+.tb-brand{display:flex;align-items:center;gap:9px}
+.tb-logo{width:34px;height:34px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--navy);flex-shrink:0;letter-spacing:-.5px}
+.tb-name{font-size:.82rem;font-weight:700;color:#fff;line-height:1.1}
+.tb-sub{font-size:.58rem;color:var(--gold);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.tb-right{display:flex;align-items:center;gap:6px}
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--navy);height:56px;display:flex;z-index:500;border-top:1px solid rgba(201,162,39,.2)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--steel-lt);font-family:var(--font);font-size:.55rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;padding:4px 2px}
+.bnav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bnav-btn.active{color:var(--gold)}
+.bnav-btn.active svg{stroke:var(--gold)}
+/* FAB center button */
+.bnav-center{position:relative;margin-top:-18px;color:var(--gold)}
+.bnav-fab{width:46px;height:46px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(201,162,39,.4);margin:0 auto 2px}
+.bnav-fab svg{width:22px;height:22px;stroke:var(--navy);stroke-width:2.5}
+.bnav-center.active .bnav-fab{background:var(--gold-lt)}
+/* MAIN */
+.main{padding:.85rem .85rem 68px;max-width:900px;margin:0 auto}
+/* SCREENS */
+.screen{display:none}.screen.active{display:block}
+/* PAGE HEADER */
+.ph{margin-bottom:1rem;padding-bottom:.65rem;border-bottom:2px solid var(--gold);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ph h2{font-size:1rem;font-weight:800;letter-spacing:-.01em}
+.ph p{font-size:.7rem;color:var(--steel);margin-top:1px}
+/* CARD */
+.card{background:var(--white);border-radius:var(--rl);box-shadow:var(--sh);margin-bottom:.85rem;overflow:hidden;border:1px solid var(--border)}
+.ch{background:var(--navy);padding:.6rem .9rem;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.ch h3{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;flex:1}
+.step-n{background:var(--gold);color:var(--navy);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;flex-shrink:0}
+.ch-ico{width:14px;height:14px;stroke:rgba(201,162,39,.7);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.cb{padding:.85rem}
+.cb.hide{display:none}
+/* GRID */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.fg.c1{grid-template-columns:1fr}
+.fg.c3{grid-template-columns:1fr 1fr 1fr}
+.span2{grid-column:span 2}
+@media(max-width:480px){.fg,.fg.c3{grid-template-columns:1fr}.span2{grid-column:span 1}}
+/* FORM FIELDS */
+.fg-item{display:flex;flex-direction:column;gap:3px}
+label{font-size:.62rem;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.06em}
+.req{color:var(--red)}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=time],input[type=password],select,textarea{
+  width:100%;padding:.48rem .65rem;border:1.5px solid var(--border);border-radius:var(--r);
+  font-family:var(--font);font-size:.8rem;color:var(--navy);background:var(--white);outline:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,162,39,.12)}
+textarea{resize:vertical;min-height:72px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A5568' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer}
+.uc{text-transform:uppercase}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:.48rem .9rem;border-radius:var(--r);border:none;font-family:var(--font);font-size:.73rem;font-weight:700;cursor:pointer;letter-spacing:.02em;white-space:nowrap;text-decoration:none}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:active{background:var(--gold-lt)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:active{background:var(--navy-mid)}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-ghost:active{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.btn-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.btn-sm{padding:.35rem .7rem;font-size:.67rem}
+.btn-full{width:100%}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+/* CRITICALITY */
+.crit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.crit-opt input{position:absolute;opacity:0;width:0;height:0}
+.crit-opt{position:relative}
+.crit-lbl{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .3rem;border-radius:var(--r);border:2px solid var(--border);cursor:pointer;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;gap:3px;text-align:center}
+.crit-dot{width:10px;height:10px;border-radius:50%}
+.cc input:checked+.crit-lbl{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.co input:checked+.crit-lbl{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
+.cm input:checked+.crit-lbl{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.cb2 input:checked+.crit-lbl{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.cc .crit-dot{background:var(--red)}
+.co .crit-dot{background:var(--orange)}
+.cm .crit-dot{background:var(--yellow)}
+.cb2 .crit-dot{background:var(--green)}
+/* CHECKBOXES */
+.chk-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.chk-item{display:flex;align-items:center;gap:6px}
+.chk-item input{width:15px;height:15px;accent-color:var(--gold);flex-shrink:0;cursor:pointer}
+.chk-item label{font-size:.72rem;font-weight:500;color:var(--navy);text-transform:none;letter-spacing:0;cursor:pointer}
+/* SUBMIT BAR */
+.sbar{position:sticky;bottom:56px;background:var(--white);border-top:2px solid var(--gold);padding:.65rem .85rem;display:flex;gap:7px;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.07)}
+/* RIS CODE */
+.ris-box{background:var(--navy);border-radius:var(--r);padding:.55rem .85rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.ris-lbl{font-size:.58rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.ris-val{font-family:var(--mono);font-size:.95rem;font-weight:700;color:#fff;letter-spacing:.04em}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-orange{background:var(--orange-bg);color:var(--orange)}
+.b-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-navy{background:rgba(13,27,42,.08);color:var(--navy)}
+.b-gold{background:var(--gold-pale);color:#7a5c00}
+/* TOAST */
+.toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:.5rem 1.1rem;border-radius:20px;font-size:.72rem;font-weight:600;box-shadow:var(--sh2);z-index:3000;opacity:0;pointer-events:none;border-left:3px solid var(--gold);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse-dot{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,27,42,.65);z-index:1000;align-items:center;justify-content:center;padding:.85rem}
+.overlay.on{display:flex}
+.modal{background:var(--white);border-radius:var(--rl);width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh2)}
+.mh{background:var(--navy);padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0}
+.mh h3{font-size:.85rem;font-weight:700;color:#fff}
+.mclose{background:none;border:none;color:var(--gold);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px}
+.mb{padding:.85rem}
+.mf{padding:.65rem .85rem;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:flex-end}
+/* GPS BOX */
+.gps-box{background:var(--navy-mid);border-radius:var(--r);padding:.55rem .75rem;color:#fff;font-size:.7rem;margin-top:6px;display:flex;align-items:center;gap:8px}
+.gps-box svg{stroke:var(--gold);flex-shrink:0}
+.gps-coords{font-family:var(--mono);font-size:.65rem;color:var(--gold)}
+/* PHOTO */
+.photo-zone{border:2px dashed var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;cursor:pointer;background:var(--surface)}
+.photo-zone svg{width:28px;height:28px;stroke:var(--steel-lt);margin-bottom:6px}
+.photo-zone p{font-size:.7rem;color:var(--steel)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.p-thumb{aspect-ratio:1;border-radius:var(--r);overflow:hidden;position:relative;background:var(--border)}
+.p-thumb img{width:100%;height:100%;object-fit:cover}
+.p-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+/* ACTION GROUP */
+.ag-title{font-size:.62rem;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;padding-bottom:3px;border-bottom:1px solid var(--border);margin-top:10px}
+.ag-title:first-child{margin-top:0}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* DETAIL */
+.dr{display:flex;gap:6px;margin-bottom:4px;align-items:flex-start}
+.dl{font-size:.66rem;font-weight:700;color:var(--steel);min-width:100px;flex-shrink:0;padding-top:1px}
+.dv{font-size:.75rem;color:var(--navy);line-height:1.4}
+.ds-title{font-size:.62rem;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;padding-bottom:3px;border-bottom:1px solid var(--border);margin-top:10px}
+.ds-title:first-child{margin-top:0}
+/* EMPTY */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--steel)}
+.empty svg{width:40px;height:40px;stroke:var(--border);margin-bottom:10px}
+.empty h3{font-size:.82rem;font-weight:700;margin-bottom:3px}
+.empty p{font-size:.7rem}
+/* PRINT */
+@media print{.topbar,.bnav,.sbar,.btn-row{display:none!important}.screen{display:block!important}.main{padding:0}}
+/* UPLOAD HIDDEN */
+.hidden-input{display:none}
+/* FILTER ROW */
+.frow{display:flex;gap:5px;flex-wrap:wrap;background:var(--white);padding:.65rem;border-radius:var(--rl);box-shadow:var(--sh);margin-bottom:.75rem;border:1px solid var(--border)}
+.frow input,.frow select{flex:1;min-width:100px;font-size:.72rem;padding:.38rem .55rem}
+.frow input[type=text]{flex:2}
+
+/* ═══ DASHBOARD ═══ */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:.85rem}
+@media(max-width:480px){.stat-row{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--white);border-radius:var(--rl);padding:.75rem;box-shadow:var(--sh);border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.sc-top{display:flex;align-items:center;justify-content:space-between}
+.sc-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sc-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.sc-val{font-size:1.5rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.sc-lbl{font-size:.6rem;font-weight:600;color:var(--steel);text-transform:uppercase;letter-spacing:.05em}
+.sc-delta{font-size:.58rem;color:var(--steel-lt);margin-top:1px}
+
+/* CHART BARS */
+.chart-label{font-size:.62rem;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.brow{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.blbl{font-size:.62rem;color:var(--steel);width:80px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btrack{flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bfill{height:100%;border-radius:4px}
+.bval{font-size:.62rem;font-weight:700;color:var(--navy);width:18px;flex-shrink:0;text-align:right}
+
+/* REPORT LIST */
+.rlist{display:flex;flex-direction:column;gap:.5rem}
+.ritem{background:var(--white);border-radius:var(--rl);padding:.7rem .85rem;box-shadow:var(--sh);display:flex;align-items:center;gap:9px;cursor:pointer;border:1px solid var(--border);border-left:4px solid transparent}
+.ritem:active{background:var(--surface)}
+.ritem.c-crit{border-left-color:var(--red)}
+.ritem.c-alto{border-left-color:var(--orange)}
+.ritem.c-med{border-left-color:var(--yellow)}
+.ritem.c-bajo{border-left-color:var(--green)}
+.ri-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ri-code{font-family:var(--mono);font-size:.65rem;font-weight:700;color:var(--navy);margin-bottom:1px}
+.ri-info{flex:1;min-width:0}
+.ri-type{font-size:.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-meta{font-size:.62rem;color:var(--steel);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+
+/* ═══ ADMIN PANEL ═══ */
+.admin-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.55rem;margin-bottom:1rem}
+@media(max-width:480px){.admin-grid{grid-template-columns:repeat(3,1fr)}}
+.ag-card{background:var(--white);border-radius:var(--rl);padding:.7rem .5rem;box-shadow:var(--sh);border:1px solid var(--border);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+.ag-card:active{background:var(--surface)}
+.ag-card.act{border:2px solid var(--gold);background:var(--gold-pale)}
+.ag-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.ag-ico svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+.ag-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);line-height:1.2}
+.ag-cnt{font-size:.85rem;font-weight:800;color:var(--navy)}
+
+/* PARAM LIST */
+.param-list{display:flex;flex-direction:column;gap:4px}
+.param-item{display:flex;align-items:center;gap:7px;padding:.5rem .65rem;background:var(--surface);border-radius:var(--r);border:1px solid var(--border)}
+.param-item.editing{background:var(--gold-pale);border-color:var(--gold)}
+.pi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pi-text{flex:1;font-size:.75rem;font-weight:600;color:var(--navy)}
+.pi-color{font-size:.6rem;font-family:var(--mono);color:var(--steel)}
+.pi-acts{display:flex;gap:4px}
+.pi-btn{background:none;border:none;cursor:pointer;padding:3px;border-radius:4px;display:flex;align-items:center}
+.pi-btn svg{width:13px;height:13px;stroke:var(--steel);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pi-btn:hover svg{stroke:var(--gold)}
+.pi-btn.del:hover svg{stroke:var(--red)}
+
+/* ADD PARAM ROW */
+.add-row{display:flex;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.add-row input{flex:1;font-size:.75rem}
+.add-row select{width:90px;font-size:.72rem}
+
+/* LOGIN MODAL */
+.login-card{background:var(--white);border-radius:var(--rl);padding:2rem 1.5rem;max-width:320px;width:100%;box-shadow:var(--sh2);text-align:center}
+.login-icon{width:56px;height:56px;background:var(--navy);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+.login-icon svg{width:26px;height:26px;stroke:var(--gold);fill:none;stroke-width:2}
+.login-title{font-size:.95rem;font-weight:800;margin-bottom:.3rem}
+.login-sub{font-size:.7rem;color:var(--steel);margin-bottom:1.2rem;line-height:1.4}
+.pin-row{display:flex;gap:8px;justify-content:center;margin-bottom:1rem}
+.pin-input{width:52px;height:52px;text-align:center;font-size:1.3rem;font-family:var(--mono);font-weight:700;border:2px solid var(--border);border-radius:var(--r);-webkit-text-security:disc;color:var(--navy)}
+.pin-input:focus{border-color:var(--gold)}
+.login-err{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--r);padding:.55rem .75rem;font-size:.72rem;color:var(--red);font-weight:600;margin-bottom:.75rem;display:none}
+.login-err.on{display:block}
+.login-hint{font-size:.62rem;color:var(--steel-lt);margin-top:.75rem;line-height:1.5}
+
+/* CHANGE KEY FORM */
+.key-form{display:flex;flex-direction:column;gap:.6rem;max-width:280px;margin:0 auto}
+
+/* DEVELOPER CARD */
+.dev-card{background:var(--navy);border-radius:var(--rl);padding:1.2rem;color:#fff;text-align:center;margin-bottom:.85rem}
+.dev-av{width:60px;height:60px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:1.3rem;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.dev-name{font-size:.95rem;font-weight:800;margin-bottom:2px}
+.dev-title{font-size:.62rem;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.dev-desc{font-size:.7rem;color:#94A3B8;line-height:1.5}
+.dev-link{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#0077B5;color:#fff;padding:.42rem .85rem;border-radius:5px;text-decoration:none;font-size:.68rem;font-weight:700}
+
+/* SESSION BADGE */
+.session-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.4);border-radius:20px;font-size:.6rem;font-weight:700;color:var(--gold);letter-spacing:.05em}
+.session-dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem}
+.sec-hdr h4{font-size:.78rem;font-weight:700;color:var(--navy)}
+
+/* DASHBOARD HALF GRID */
+.half-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+@media(max-width:480px){.half-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-brand">
+    <div class="tb-logo">RIS</div>
+    <div>
+      <div class="tb-name">RIS — Incidentes de Seguridad</div>
+      <div class="tb-sub">Seguridad Patrimonial</div>
+    </div>
+  </div>
+  <div class="tb-right">
+    <span class="session-badge" id="session-badge" style="display:none"><span class="session-dot"></span>ADMIN</span>
+    <div id="tb-datetime" style="font-family:var(--mono);font-size:.68rem;color:rgba(201,162,39,.9);letter-spacing:.03em;text-align:right">
+      <div id="tb-time" style="font-size:.82rem;font-weight:700">--:--:--</div>
+      <div id="tb-date" style="font-size:.58rem;color:rgba(255,255,255,.5)">Cargando...</div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- ═══════════════════════════════════════════════════ DASHBOARD ═══ -->
+<div class="screen active" id="screen-dashboard">
+  <div class="ph">
+    <div><h2>&#x1F4CA; Panel de Control</h2><p id="dash-fecha">&#x2014;</p></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:var(--blue-bg)">
+          <svg style="stroke:var(--blue)" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="sc-val" id="st-total">0</div>
+      </div>
+      <div class="sc-lbl">Total RIS</div>
+      <div class="sc-delta" id="st-d-total">acumulados</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:var(--red-bg)">
+          <svg style="stroke:var(--red)" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="sc-val" id="st-crit" style="color:var(--red)">0</div>
+      </div>
+      <div class="sc-lbl">&#x1F534; Cr&#xED;ticos</div>
+      <div class="sc-delta" id="st-d-crit">pendientes</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:var(--yellow-bg)">
+          <svg style="stroke:var(--yellow)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="sc-val" id="st-mes">0</div>
+      </div>
+      <div class="sc-lbl">Este Mes</div>
+      <div class="sc-delta" id="st-d-mes">reportes</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-top">
+        <div class="sc-icon" style="background:var(--green-bg)">
+          <svg style="stroke:var(--green)" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="sc-val" id="st-cerr" style="color:var(--green)">0</div>
+      </div>
+      <div class="sc-lbl">Cerrados</div>
+      <div class="sc-delta" id="st-d-cerr">resueltos</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="half-grid" style="margin-bottom:.85rem">
+    <div class="card">
+      <div class="ch" onclick="toggleCard(this)"><h3>Tipo de Evento</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="cb" id="chart-tipos">
+        <div class="empty" style="padding:1rem"><p>Sin datos</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch" onclick="toggleCard(this)"><h3>Por Criticidad</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="cb" id="chart-crits">
+        <div class="empty" style="padding:1rem"><p>Sin datos</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT REPORTS -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)">
+      <h3>&#x1F4CB; &#xDA;ltimos Reportes</h3>
+      <svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cb">
+      <div id="dash-recientes">
+        <div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><h3>Sin reportes a&#xFA;n</h3><p>Registra el primer RIS</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTADO RESUMEN -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><h3>Estado de Reportes</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb" id="chart-estados">
+      <div class="empty" style="padding:1rem"><p>Sin datos</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ NUEVO RIS ═══ -->
+<div class="screen" id="screen-nuevo">
+  <div class="ph"><div><h2>&#x1F4DD; Nuevo Reporte RIS</h2><p>Complete todos los campos obligatorios</p></div></div>
+
+  <div class="ris-box">
+    <div><div class="ris-lbl">C&#xF3;digo RIS</div><div class="ris-val" id="ris-code">RIS-2025-0001</div></div>
+    <div style="text-align:right"><div class="ris-lbl">Fecha / Hora</div><div class="ris-val" id="ris-dt" style="font-size:.72rem">&#x2014;</div></div>
+  </div>
+
+  <!-- S1 DATOS GENERALES -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">1</div><h3>Datos Generales</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg">
+        <div class="fg-item"><label>Empresa / Raz&#xF3;n Social <span class="req">*</span></label><select id="f-empresa"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
+        <div class="fg-item"><label>Unidad / Sede <span style="font-size:.58rem;color:var(--steel-lt);text-transform:none;letter-spacing:0">(Ciudad / Zona)</span></label><select id="f-unidad"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
+        <div class="fg-item"><label>Fundo / Planta / Instalaci&#xF3;n</label>
+          <select id="f-planta"><option value="">&#x2014; Seleccionar &#x2014;</option></select>
+        </div>
+        <div class="fg-item"><label>&#xC1;rea</label>
+          <select id="f-area"><option value="">&#x2014; Seleccionar &#x2014;</option></select>
+        </div>
+        <div class="fg-item span2"><label>Ubicaci&#xF3;n Exacta</label><input type="text" id="f-ubic" class="uc" placeholder="PUERTA N&#xB0;2 / PASILLO C / ALMAC&#xC9;N"></div>
+        <div class="fg-item"><label>Fecha del Evento</label><input type="date" id="f-fecha"></div>
+        <div class="fg-item"><label>Hora del Evento</label><input type="time" id="f-hora" onchange="this.dataset.userSet='1'"></div>
+      </div>
+      <div style="margin-top:.65rem;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="gps-btn" onclick="abrirModalMapa()">
+          <svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <span id="gps-btn-txt">Obtener GPS</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="gps-map-btn" style="display:none" onclick="abrirModalMapa()">
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Ver / Editar en Mapa
+        </button>
+      </div>
+      <div class="gps-box" id="gps-box" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div>
+          <div class="gps-coords" id="gps-coords">&#x2014;</div>
+          <div style="font-size:.6rem;color:#94A3B8;margin-top:1px" id="gps-addr">Coordenadas GPS capturadas · toca el mapa para ajustar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 PERSONA -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">2</div><h3>Persona que Reporta</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg">
+        <div class="fg-item span2"><label>Nombre Completo <span class="req">*</span></label><input type="text" id="f-reporta" class="uc" placeholder="APELLIDOS Y NOMBRES"></div>
+        <div class="fg-item"><label>Cargo / Puesto</label><select id="f-cargo"><option value="">&#x2014; Seleccionar &#x2014;</option></select></div>
+        <div class="fg-item"><label>Tel&#xE9;fono</label><input type="tel" id="f-tel" inputmode="tel" placeholder="999 000 000"></div>
+        <div class="fg-item span2"><label>Correo Electr&#xF3;nico</label><input type="email" id="f-correo" placeholder="correo@empresa.com"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3 CLASIFICACION -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">3</div><h3>Clasificaci&#xF3;n del Evento</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg" style="margin-bottom:.65rem">
+        <div class="fg-item"><label>Tipo de Evento <span class="req">*</span></label>
+          <select id="f-tipo" onchange="sugerirCrit(this.value)"><option value="">&#x2014; Seleccionar &#x2014;</option></select>
+        </div>
+        <div class="fg-item"><label>Estado del Reporte</label>
+          <select id="f-estado"><option value="">&#x2014; Seleccionar &#x2014;</option></select>
+        </div>
+      </div>
+      <div style="margin-bottom:.65rem">
+        <label style="display:block;margin-bottom:6px">Nivel de Criticidad <span class="req">*</span></label>
+        <div class="crit-grid">
+          <div class="crit-opt cc"><input type="radio" name="crit" id="crit1" value="CR&#xCD;TICO"><label class="crit-lbl" for="crit1"><div class="crit-dot"></div>Cr&#xED;tico</label></div>
+          <div class="crit-opt co"><input type="radio" name="crit" id="crit2" value="ALTO"><label class="crit-lbl" for="crit2"><div class="crit-dot"></div>Alto</label></div>
+          <div class="crit-opt cm"><input type="radio" name="crit" id="crit3" value="MEDIO"><label class="crit-lbl" for="crit3"><div class="crit-dot"></div>Medio</label></div>
+          <div class="crit-opt cb2"><input type="radio" name="crit" id="crit4" value="BAJO"><label class="crit-lbl" for="crit4"><div class="crit-dot"></div>Bajo</label></div>
+        </div>
+      </div>
+      <label style="display:block;margin-bottom:6px">Impacto Identificado</label>
+      <div class="chk-grid" id="chk-impacto"></div>
+    </div>
+  </div>
+
+  <!-- S4 DESCRIPCION -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">4</div><h3>Descripci&#xF3;n del Evento</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg c1">
+        <div class="fg-item"><label>Resumen Ejecutivo <span class="req">*</span></label><textarea id="f-resumen" class="uc" rows="2" placeholder="DESCRIPCI&#xD3;N BREVE EN UNA O DOS ORACIONES"></textarea></div>
+        <div class="fg-item"><label>Descripci&#xF3;n Detallada</label><textarea id="f-desc" class="uc" rows="3" placeholder="CIRCUNSTANCIAS, LUGAR, HORA, SECUENCIA DE HECHOS..."></textarea></div>
+        <div class="fg-item"><label id="lbl-como">C&#xF3;mo Ocurri&#xF3;</label><textarea id="f-como" class="uc" rows="2" id="f-como" placeholder="MEC&#xC1;NICA DEL EVENTO, FACTORES CONTRIBUYENTES..."></textarea></div>
+        <div class="fg-item"><label>Personas Involucradas</label><textarea id="f-involuc" class="uc" rows="2" placeholder="NOMBRES, CARGOS, EMPRESA"></textarea></div>
+        <div class="fg-item"><label>Testigos</label><textarea id="f-testigos" class="uc" rows="2" placeholder="NOMBRES Y DATOS DE CONTACTO"></textarea></div>
+        <div class="fg-item"><label>Da&#xF1;os Ocasionados</label><textarea id="f-danos" class="uc" rows="2" placeholder="DESCRIPCI&#xD3;N Y ESTIMACI&#xD3;N DE DA&#xD1;OS"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5 BASC -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">5</div><h3>Clasificaci&#xF3;n BASC</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg-item" style="margin-bottom:.65rem">
+        <label>&#xBF;Involucra Cumplimiento BASC?</label>
+        <select id="f-basc"><option value="">&#x2014; Seleccionar &#x2014;</option><option>S&#xCD;</option><option>NO</option></select>
+      </div>
+      <label style="display:block;margin-bottom:6px">Categor&#xED;a BASC Afectada</label>
+      <div class="chk-grid" id="chk-basc"></div>
+    </div>
+  </div>
+
+  <!-- S6 ALIM -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">6</div><h3>Seguridad y Defensa Alimentaria</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="ag-title">Seguridad Alimentaria</div>
+      <div class="chk-grid">
+        <div class="chk-item"><input type="checkbox" id="al1" value="Contaminaci&#xF3;n"><label for="al1">Contaminaci&#xF3;n</label></div>
+        <div class="chk-item"><input type="checkbox" id="al2" value="Adulteraci&#xF3;n"><label for="al2">Adulteraci&#xF3;n</label></div>
+        <div class="chk-item"><input type="checkbox" id="al3" value="Sabotaje"><label for="al3">Sabotaje</label></div>
+        <div class="chk-item"><input type="checkbox" id="al4" value="Manipulaci&#xF3;n Indebida"><label for="al4">Manip. Indebida</label></div>
+        <div class="chk-item"><input type="checkbox" id="al5" value="Riesgo Microbiol&#xF3;gico"><label for="al5">R. Microbiol&#xF3;gico</label></div>
+        <div class="chk-item"><input type="checkbox" id="al6" value="Riesgo Qu&#xED;mico"><label for="al6">R. Qu&#xED;mico</label></div>
+        <div class="chk-item"><input type="checkbox" id="al7" value="Riesgo F&#xED;sico"><label for="al7">R. F&#xED;sico</label></div>
+      </div>
+      <div class="ag-title" style="margin-top:10px">Defensa Alimentaria</div>
+      <div class="chk-grid">
+        <div class="chk-item"><input type="checkbox" id="df1" value="Amenaza Intencional"><label for="df1">Amenaza Intencional</label></div>
+        <div class="chk-item"><input type="checkbox" id="df2" value="Vulnerabilidad"><label for="df2">Vulnerabilidad</label></div>
+        <div class="chk-item"><input type="checkbox" id="df3" value="Sabotaje Interno"><label for="df3">Sabotaje Interno</label></div>
+        <div class="chk-item"><input type="checkbox" id="df4" value="Sabotaje Externo"><label for="df4">Sabotaje Externo</label></div>
+        <div class="chk-item"><input type="checkbox" id="df5" value="Producto Comprometido"><label for="df5">Prod. Comprometido</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S7 VIAL -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">7</div><h3>Seguridad Vial</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="fg">
+        <div class="fg-item"><label>Tipo de Veh&#xED;culo</label>
+          <select id="f-vtipo"><option value="">&#x2014; Seleccionar &#x2014;</option></select>
+        </div>
+        <div class="fg-item"><label>Placa / C&#xF3;digo</label><input type="text" id="f-placa" class="uc" placeholder="ABC-123" inputmode="text"></div>
+        <div class="fg-item"><label>Conductor</label><input type="text" id="f-cond" class="uc" placeholder="APELLIDOS Y NOMBRES"></div>
+        <div class="fg-item"><label>N&#xB0; de Licencia</label><input type="text" id="f-lic" class="uc" inputmode="text"></div>
+        <div class="fg-item"><label>Ruta</label><input type="text" id="f-ruta" class="uc" placeholder="ORIGEN &#x2192; DESTINO"></div>
+        <div class="fg-item"><label>Km del Evento</label><input type="number" id="f-km" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div style="margin-top:.65rem">
+        <label style="display:block;margin-bottom:6px">Factores Viales</label>
+        <div class="chk-grid">
+          <div class="chk-item"><input type="checkbox" id="vl1" value="Fatiga del Conductor"><label for="vl1">Fatiga</label></div>
+          <div class="chk-item"><input type="checkbox" id="vl2" value="Distracci&#xF3;n"><label for="vl2">Distracci&#xF3;n</label></div>
+          <div class="chk-item"><input type="checkbox" id="vl3" value="Exceso de Velocidad"><label for="vl3">Exceso Velocidad</label></div>
+          <div class="chk-item"><input type="checkbox" id="vl4" value="Cond. Clim&#xE1;ticas Adversas"><label for="vl4">Clima Adverso</label></div>
+          <div class="chk-item"><input type="checkbox" id="vl5" value="Falla Mec&#xE1;nica"><label for="vl5">Falla Mec&#xE1;nica</label></div>
+          <div class="chk-item"><input type="checkbox" id="vl6" value="Exceso de Carga"><label for="vl6">Exceso de Carga</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S8 ACCIONES -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">8</div><h3>Acciones Tomadas</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="ag-title">Acciones Inmediatas</div>
+      <div class="chk-grid" id="chk-acc-inm"></div>
+      <div class="ag-title">Acciones Preventivas</div>
+      <div class="chk-grid" id="chk-acc-prev"></div>
+      <div class="ag-title">Acciones Correctivas</div>
+      <div class="chk-grid" id="chk-acc-cor"></div>
+      <div class="fg-item" style="margin-top:.65rem">
+        <label>Descripci&#xF3;n Adicional de Acciones</label>
+        <textarea id="f-acc-desc" class="uc" rows="2" placeholder="DETALLE ACCIONES COMPLEMENTARIAS..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- S9 EVIDENCIAS -->
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><div class="step-n">9</div><h3>Evidencias y Adjuntos</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="photo-zone" onclick="document.getElementById('photoIn').click()">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p><strong>Toca para agregar fotos o im&#xE1;genes</strong></p>
+        <p style="margin-top:2px">C&#xE1;mara &#xB7; Galer&#xED;a &#xB7; Documentos</p>
+      </div>
+      <input type="file" id="photoIn" class="hidden-input" accept="image/*" multiple capture="environment" onchange="addPhotos(this.files)">
+      <div class="photo-grid" id="photo-grid"></div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoIn').click()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+          C&#xE1;mara / Galer&#xED;a
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('docIn').click()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          PDF / Documentos
+        </button>
+      </div>
+      <input type="file" id="docIn" class="hidden-input" accept=".pdf,.doc,.docx" multiple onchange="addDocs(this.files)">
+      <div id="doc-list"></div>
+      <div class="fg-item" style="margin-top:.65rem">
+        <label>Observaciones Finales</label>
+        <textarea id="f-obs" class="uc" rows="2" placeholder="OBSERVACIONES DEL SUPERVISOR RESPONSABLE..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="sbar">
+    <button class="btn btn-gold" style="flex:1" onclick="guardar()">
+      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      GUARDAR RIS
+    </button>
+    <button class="btn btn-ghost" onclick="limpiar()">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.37"/></svg>
+      Limpiar
+    </button>
+  </div>
+</div>
+<!-- ═══════════════════════════════════════════════════ LISTA ═══ -->
+<div class="screen" id="screen-lista">
+  <div class="ph">
+    <div><h2>&#x1F4CB; Reportes RIS</h2><p id="lista-cnt">0 registros</p></div>
+  </div>
+  <div class="frow">
+    <input type="text" id="fs-txt" placeholder="&#x1F50D; C&#xF3;digo, tipo, empresa..." oninput="renderLista()">
+    <select id="fs-tipo" onchange="renderLista()"><option value="">Todos los tipos</option></select>
+    <select id="fs-crit" onchange="renderLista()">
+      <option value="">Criticidad</option>
+      <option>CR&#xCD;TICO</option><option>ALTO</option><option>MEDIO</option><option>BAJO</option>
+    </select>
+    <select id="fs-est" onchange="renderLista()"><option value="">Estados</option></select>
+  </div>
+  <div class="btn-row" style="margin-bottom:.75rem">
+    <button class="btn btn-navy btn-sm" onclick="expExcel()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Excel
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="expPDF()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      PDF
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="window.print()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="whatsapp()">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      WhatsApp
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="shareEmail()">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Email
+    </button>
+  </div>
+  <div class="rlist" id="report-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ACERCA ═══ -->
+<div class="screen" id="screen-acerca">
+  <div class="ph"><h2>&#x2139;&#xFE0F; Acerca de RIS</h2></div>
+  <div class="dev-card">
+    <div class="dev-av">EQ</div>
+    <div class="dev-name">Edward Quezada M.</div>
+    <div class="dev-title">Profesional en Seguridad Patrimonial</div>
+    <div class="dev-desc">Especialista con m&#xE1;s de 20 a&#xF1;os de experiencia en seguridad patrimonial y gesti&#xF3;n de riesgos en el sector agroindustrial. Certificado SUCAMEC/CEFOESP, EPG y Colegio de Ingenieros del Per&#xFA;. Piloto acreditado DJI Matrice 300.</div>
+    <a class="dev-link" href="https://www.linkedin.com/in/edwardqm" target="_blank">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+      linkedin.com/in/edwardqm
+    </a>
+  </div>
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><h3>Informaci&#xF3;n del Sistema</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <div class="dr"><div class="dl">Versi&#xF3;n</div><div class="dv">RIS v2.0 — PWA</div></div>
+      <div class="dr"><div class="dl">Sector</div><div class="dv">Agroindustrial &#xB7; Log&#xED;stico &#xB7; Minero &#xB7; Portuario &#xB7; Transporte</div></div>
+      <div class="dr"><div class="dl">Est&#xE1;ndares</div><div class="dv">BASC &#xB7; HSE &#xB7; SST &#xB7; ISO 31000 &#xB7; Food Defense &#xB7; ASIS</div></div>
+      <div class="dr"><div class="dl">Marco Legal</div><div class="dv">Ley N&#xB0; 28879 &#xB7; SUCAMEC &#xB7; NTP 350.043-1 &#xB7; NFPA 10</div></div>
+      <div class="dr"><div class="dl">Almacenamiento</div><div class="dv">Local (dispositivo) &#xB7; Sin servidor</div></div>
+      <div class="dr"><div class="dl">Reportes</div><div class="dv" id="info-total">0 registrados</div></div>
+      <div class="dr"><div class="dl">Uso</div><div class="dv" id="info-storage">Calculando...</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch" onclick="toggleCard(this)"><h3>Soporte</h3><svg class="ch-ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="cb">
+      <p style="font-size:.75rem;color:var(--steel);line-height:1.6;margin-bottom:.75rem">Para soporte t&#xE9;cnico, configuraci&#xF3;n avanzada o personalizaci&#xF3;n del sistema, contacte al desarrollador a trav&#xE9;s de LinkedIn.</p>
+      <button class="btn btn-red btn-sm" onclick="borrarTodo()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        Eliminar todos los datos
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ ADMIN ═══ -->
+<div class="screen" id="screen-admin">
+  <div class="ph">
+    <div><h2>&#x2699;&#xFE0F; Panel de Administraci&#xF3;n</h2><p>Gesti&#xF3;n de par&#xE1;metros del sistema RIS</p></div>
+    <button class="btn btn-red btn-sm" onclick="logoutAdmin()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar Sesi&#xF3;n
+    </button>
+  </div>
+
+  <!-- QUICK ACCESS GRID -->
+  <div class="admin-grid" id="admin-menu-grid">
+    <div class="ag-card" id="ag-tipos" onclick="adminTab('tipos')">
+      <div class="ag-ico" style="background:#EBF4FF"><svg style="stroke:#1A5276" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+      <div class="ag-lbl">Tipos Evento</div><div class="ag-cnt" id="ac-tipos">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-estados" onclick="adminTab('estados')">
+      <div class="ag-ico" style="background:var(--yellow-bg)"><svg style="stroke:var(--yellow)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="ag-lbl">Estados RIS</div><div class="ag-cnt" id="ac-estados">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-criticidad" onclick="adminTab('criticidad')">
+      <div class="ag-ico" style="background:var(--red-bg)"><svg style="stroke:var(--red)" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+      <div class="ag-lbl">Criticidad</div><div class="ag-cnt" id="ac-crit">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-impactos" onclick="adminTab('impactos')">
+      <div class="ag-ico" style="background:#FAF5FF"><svg style="stroke:#6B46C1" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <div class="ag-lbl">Impactos</div><div class="ag-cnt" id="ac-imp">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-vehiculos" onclick="adminTab('vehiculos')">
+      <div class="ag-ico" style="background:var(--green-bg)"><svg style="stroke:var(--green)" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div class="ag-lbl">Veh&#xED;culos</div><div class="ag-cnt" id="ac-veh">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-areas" onclick="adminTab('areas')">
+      <div class="ag-ico" style="background:#FFF8F0"><svg style="stroke:#C05621" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+      <div class="ag-lbl">&#xC1;reas / Sedes</div><div class="ag-cnt" id="ac-areas">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-basc" onclick="adminTab('basc')">
+      <div class="ag-ico" style="background:#E6FFFA"><svg style="stroke:#234E52" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="ag-lbl">Categ. BASC</div><div class="ag-cnt" id="ac-basc">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-acciones" onclick="adminTab('acciones')">
+      <div class="ag-ico" style="background:#EBF8FF"><svg style="stroke:#2C7A7B" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="ag-lbl">Acciones</div><div class="ag-cnt" id="ac-acc">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-empresa" onclick="adminTab('empresa')">
+      <div class="ag-ico" style="background:#F0FFF4"><svg style="stroke:#276749" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+      <div class="ag-lbl">Empresas / Razón Social</div><div class="ag-cnt" id="ac-emp">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-sedes" onclick="adminTab('sedes')">
+      <div class="ag-ico" style="background:#EBF8FF"><svg style="stroke:#2B6CB0" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>
+      <div class="ag-lbl">Unidades / Sedes</div><div class="ag-cnt" id="ac-sedes">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-fundos" onclick="adminTab('fundos')">
+      <div class="ag-ico" style="background:#F0FFF4"><svg style="stroke:#276749" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="ag-lbl">Fundos / Plantas</div><div class="ag-cnt" id="ac-fundos">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-cargos" onclick="adminTab('cargos')">
+      <div class="ag-ico" style="background:#FAF5FF"><svg style="stroke:#6B46C1" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="ag-lbl">Cargos</div><div class="ag-cnt" id="ac-cargos">&#x2013;</div>
+    </div>
+    <div class="ag-card" id="ag-clave" onclick="adminTab('clave')">
+      <div class="ag-ico" style="background:var(--red-bg)"><svg style="stroke:var(--red)" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="ag-lbl">Clave Admin</div><div class="ag-cnt">&#x1F511;</div>
+    </div>
+  </div>
+
+  <!-- TAB PANEL -->
+  <div id="admin-panel" style="display:none">
+    <div class="card">
+      <div class="ch" id="admin-panel-header"><h3 id="admin-panel-title">Par&#xE1;metros</h3>
+        <button onclick="cerrarPanel()" style="background:none;border:none;cursor:pointer;margin-left:auto">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(201,162,39,.7)" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="cb" id="admin-panel-body"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-dashboard" onclick="showScreen('dashboard')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Panel
+  </button>
+  <button class="bnav-btn" id="nav-lista" onclick="showScreen('lista')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+    Reportes
+  </button>
+  <button class="bnav-btn bnav-center" id="nav-nuevo" onclick="showScreen('nuevo')">
+    <div class="bnav-fab">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    Nuevo RIS
+  </button>
+  <button class="bnav-btn" id="nav-admin" onclick="openLogin()">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Admin
+  </button>
+  <!-- nav-admin alias so showScreen('admin') activates the button correctly -->
+  <button class="bnav-btn" id="nav-acerca" onclick="showScreen('acerca')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Acerca
+  </button>
+</nav>
+
+<!-- MODAL: LOGIN ADMIN -->
+<div class="overlay" id="ov-login">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="login-title">Acceso Restringido</div>
+    <div class="login-sub">Ingrese la clave de administrador para acceder al panel de configuraci&#xF3;n del sistema.</div>
+    <div class="login-err" id="login-err">
+      &#x26D4; Clave incorrecta. Para soporte contacte al desarrollador:<br>
+      <strong>linkedin.com/in/edwardqm</strong>
+    </div>
+    <div class="pin-row">
+      <input type="password" class="pin-input" id="pin1" maxlength="1" inputmode="numeric" oninput="pinNext(this,'pin2')" onkeydown="pinBack(event,this,null)">
+      <input type="password" class="pin-input" id="pin2" maxlength="1" inputmode="numeric" oninput="pinNext(this,'pin3')" onkeydown="pinBack(event,this,'pin1')">
+      <input type="password" class="pin-input" id="pin3" maxlength="1" inputmode="numeric" oninput="pinNext(this,'pin4')" onkeydown="pinBack(event,this,'pin2')">
+      <input type="password" class="pin-input" id="pin4" maxlength="1" inputmode="numeric" oninput="pinCheck()" onkeydown="pinBack(event,this,'pin3')">
+    </div>
+    <button class="btn btn-navy btn-full" onclick="loginAdmin()">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Ingresar al Sistema
+    </button>
+    <div class="login-hint">Acceso protegido por clave de 4 d&#xED;gitos.<br>Soporte: <a href="https://www.linkedin.com/in/edwardqm" target="_blank" style="color:var(--gold)">linkedin.com/in/edwardqm</a></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:.75rem;width:100%" onclick="closeOverlay('ov-login')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL: DETALLE REPORTE -->
+<div class="overlay" id="ov-detalle">
+  <div class="modal">
+    <div class="mh"><h3 id="det-title">&#x2014;</h3><button class="mclose" onclick="closeOverlay('ov-detalle')">&#x2715;</button></div>
+    <!-- BARRA CAMBIO DE ESTADO -->
+    <div id="det-estado-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:.55rem .85rem;display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+      <span style="font-size:.6rem;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0">Estado:</span>
+      <div id="det-estado-btns" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+    </div>
+    <div class="mb" id="det-body"></div>
+    <div class="mf">
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('ov-detalle')">Cerrar</button>
+      <button class="btn btn-ghost btn-sm" onclick="expPDFSingle()">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+        PDF
+      </button>
+      <button class="btn btn-red btn-sm" onclick="eliminarActual()">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PARAM -->
+<div class="overlay" id="ov-edit">
+  <div class="modal" style="max-width:360px">
+    <div class="mh"><h3 id="edit-title">Editar par&#xE1;metro</h3><button class="mclose" onclick="closeOverlay('ov-edit')">&#x2715;</button></div>
+    <div class="mb">
+      <div class="fg-item" style="margin-bottom:.65rem">
+        <label>Nombre / Valor</label>
+        <input type="text" id="edit-val" class="uc" placeholder="NOMBRE DEL PAR&#xC1;METRO">
+      </div>
+      <div class="fg-item" id="edit-color-row" style="margin-bottom:.65rem;display:none">
+        <label>Color (hex)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="color" id="edit-color-picker" style="width:40px;height:34px;padding:2px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer">
+          <input type="text" id="edit-color-hex" placeholder="#C0392B" style="flex:1;font-family:var(--mono)">
+        </div>
+      </div>
+      <div class="fg-item" id="edit-emoji-row" style="display:none">
+        <label>Emoji (opcional)</label>
+        <input type="text" id="edit-emoji" placeholder="&#x26A0;&#xFE0F; &#x1F697; &#x1F6E1;..." style="font-size:1rem">
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('ov-edit')">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="guardarEdicion()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MAPA GPS -->
+<div class="overlay" id="ov-mapa" style="z-index:1100;padding:.5rem">
+  <div style="width:100%;max-width:520px;height:94vh;max-height:700px;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.55);background:#0D1B2A">
+
+    <!-- ── HEADER ── -->
+    <div style="background:linear-gradient(135deg,#0D1B2A 0%,#162538 100%);padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(201,162,39,.25)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#C9A227,#E2B830);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(201,162,39,.35)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div>
+          <div style="font-size:.82rem;font-weight:800;color:#fff;letter-spacing:-.01em">Captura de Ubicación GPS</div>
+          <div style="font-size:.58rem;color:rgba(201,162,39,.8);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:1px" id="mapa-subtitulo">Iniciando...</div>
+        </div>
+      </div>
+      <button onclick="cerrarModalMapa()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;line-height:1">&#x2715;</button>
+    </div>
+
+    <!-- ── STATUS BAR ── -->
+    <div id="mapa-status" style="background:#0A1520;padding:.38rem .9rem;display:flex;align-items:center;gap:8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div id="mapa-dot" style="width:8px;height:8px;border-radius:50%;background:#475569;flex-shrink:0;transition:background .4s;box-shadow:0 0 6px currentColor"></div>
+      <span id="mapa-msg" style="font-size:.6rem;color:#94A3B8;font-weight:600;letter-spacing:.03em">Iniciando localización GPS...</span>
+    </div>
+
+    <!-- ── COORDS BAR ── -->
+    <div style="background:#111F30;padding:.5rem .9rem;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="min-width:0;flex:1">
+        <div id="mapa-coords" style="font-family:var(--mono);font-size:.72rem;color:#C9A227;letter-spacing:.05em;font-weight:700">— , —</div>
+        <div id="mapa-addr-txt" style="font-size:.56rem;color:#64748B;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Esperando señal GPS...</div>
+      </div>
+      <button onclick="centrarEnMiUbic()"
+        style="background:rgba(201,162,39,.12);border:1.5px solid rgba(201,162,39,.5);border-radius:8px;padding:5px 10px;color:#C9A227;font-size:.58rem;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:4px;letter-spacing:.03em;transition:all .2s">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        RELOCALIZAR
+      </button>
+    </div>
+
+    <!-- ── ZONA MAPA ── -->
+    <div id="mapa-contenedor" style="flex:1;min-height:0;position:relative;background:#0D1B2A;display:flex;align-items:center;justify-content:center;overflow:hidden">
+
+      <!-- Estado: Cargando -->
+      <div id="mapa-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:28px;width:100%">
+        <div style="position:relative;width:64px;height:64px">
+          <div style="position:absolute;inset:0;border:3px solid rgba(201,162,39,.15);border-radius:50%"></div>
+          <div style="position:absolute;inset:0;border:3px solid transparent;border-top-color:#C9A227;border-radius:50%;animation:spin .9s linear infinite"></div>
+          <div style="position:absolute;inset:10px;background:rgba(201,162,39,.08);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#C9A227" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.75rem;font-weight:700;color:#fff;margin-bottom:5px">Obteniendo ubicación GPS...</div>
+          <div style="font-size:.6rem;color:#475569;line-height:1.6">Asegúrate de tener el GPS activado<br>y que el navegador tenga permiso</div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <div style="width:6px;height:6px;background:#C9A227;border-radius:50%;animation:pulse-dot 1.2s ease-in-out infinite"></div>
+          <div style="width:6px;height:6px;background:#C9A227;border-radius:50%;animation:pulse-dot 1.2s ease-in-out .4s infinite"></div>
+          <div style="width:6px;height:6px;background:#C9A227;border-radius:50%;animation:pulse-dot 1.2s ease-in-out .8s infinite"></div>
+        </div>
+      </div>
+
+      <!-- Estado: Error GPS — con coordenadas + link directo si tenemos coords -->
+      <div id="mapa-error" style="display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:24px 28px;width:100%">
+        <div style="width:60px;height:60px;background:rgba(184,50,50,.15);border:2px solid rgba(184,50,50,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#B83232" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        </div>
+        <div>
+          <div style="font-size:.78rem;font-weight:800;color:#EF4444;margin-bottom:5px">No se pudo cargar el mapa</div>
+          <div id="mapa-error-msg" style="font-size:.6rem;color:#64748B;max-width:270px;line-height:1.6;margin:0 auto"></div>
+        </div>
+
+        <!-- Panel de coordenadas (se muestra si tenemos coords) -->
+        <div id="mapa-coords-panel" style="display:none;background:#111F30;border:1px solid rgba(201,162,39,.3);border-radius:10px;padding:.75rem 1rem;width:100%;text-align:left">
+          <div style="font-size:.55rem;color:#C9A227;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">✓ Coordenadas GPS capturadas</div>
+          <div id="mapa-error-coords" style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;margin-bottom:8px">— , —</div>
+          <div id="mapa-error-addr" style="font-size:.58rem;color:#64748B;margin-bottom:10px;line-height:1.5">Buscando dirección...</div>
+          <a id="mapa-gmaps-link" href="#" target="_blank" rel="noopener"
+            style="display:inline-flex;align-items:center;gap:6px;background:#1A73E8;color:#fff;border-radius:8px;padding:7px 14px;font-size:.63rem;font-weight:700;text-decoration:none;letter-spacing:.02em">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Ver en Google Maps
+          </a>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px">
+          <button onclick="centrarEnMiUbic()"
+            style="background:#162538;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px;font-size:.65rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            🔄 Reintentar GPS
+          </button>
+          <button onclick="abrirManual()"
+            style="background:rgba(201,162,39,.12);color:#C9A227;border:1.5px solid rgba(201,162,39,.45);border-radius:8px;padding:9px;font-size:.65rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Ingresar coordenadas manualmente
+          </button>
+        </div>
+      </div>
+
+      <!-- Estado: Mapa cargado (Google Maps iframe) -->
+      <div id="mapa-gmap-wrap" style="display:none;width:100%;height:100%;position:relative">
+        <iframe id="mapa-gmap" style="width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe>
+        <!-- Overlay aviso iframe bloqueado -->
+        <div id="mapa-iframe-bloq" style="display:none;position:absolute;inset:0;background:#0D1B2A;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px">
+          <div style="width:56px;height:56px;background:rgba(201,162,39,.1);border:2px solid rgba(201,162,39,.3);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#C9A227" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h.01M15 9h.01M9 15h.01M15 15h.01"/></svg>
+          </div>
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:#fff;margin-bottom:5px">Mapa bloqueado por la red</div>
+            <div style="font-size:.6rem;color:#64748B;line-height:1.6;max-width:240px;margin:0 auto">Google Maps no pudo cargarse.<br>Las coordenadas fueron capturadas correctamente.</div>
+          </div>
+          <div id="mapa-bloq-coords-box" style="background:#111F30;border:1px solid rgba(201,162,39,.3);border-radius:10px;padding:.7rem 1rem;width:100%;max-width:280px;text-align:left">
+            <div style="font-size:.55rem;color:#C9A227;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Coordenadas GPS</div>
+            <div id="mapa-bloq-coords" style="font-family:var(--mono);font-size:.8rem;font-weight:700;color:#fff;margin-bottom:8px">— , —</div>
+            <div id="mapa-bloq-addr" style="font-size:.57rem;color:#64748B;margin-bottom:10px;line-height:1.5"></div>
+            <a id="mapa-bloq-link" href="#" target="_blank" rel="noopener"
+              style="display:inline-flex;align-items:center;gap:6px;background:#1A73E8;color:#fff;border-radius:8px;padding:7px 14px;font-size:.63rem;font-weight:700;text-decoration:none">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Abrir en Google Maps
+            </a>
+          </div>
+        </div>
+        <!-- Botón flotante abrir en app (cuando mapa carga OK) -->
+        <div style="position:absolute;bottom:10px;right:10px;z-index:20">
+          <button onclick="abrirEnGoogleMaps()"
+            style="background:#0D1B2A;border:1.5px solid rgba(201,162,39,.5);border-radius:20px;padding:5px 12px;color:#C9A227;font-size:.58rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(0,0,0,.4)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Abrir en Maps
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div style="background:#0A1520;padding:.6rem .85rem;display:flex;gap:7px;justify-content:space-between;align-items:center;flex-shrink:0;border-top:1px solid rgba(255,255,255,.06)">
+      <button onclick="cerrarModalMapa()"
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94A3B8;border-radius:8px;padding:.45rem .9rem;font-size:.67rem;font-weight:700;cursor:pointer;font-family:var(--font)">
+        Cancelar
+      </button>
+      <button id="mapa-confirm-btn" onclick="confirmarGPS()" disabled
+        style="background:linear-gradient(135deg,#C9A227,#E2B830);color:#0D1B2A;border:none;border-radius:8px;padding:.45rem 1.2rem;font-size:.67rem;font-weight:800;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;opacity:.4;transition:opacity .3s;letter-spacing:.02em">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirmar Ubicación
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════════
+//  RIS v2.0 — JAVASCRIPT ENGINE
+//  Seguridad Patrimonial — Edward Quezada M.
+// ════════════════════════════════════════════════════════════
+
+// ── CONSTANTS ────────────────────────────────────────────────
+const DB      = 'ris_v2';
+const DB_CFG  = 'ris_v2_cfg';
+const ADM_KEY = 'ris_v2_adm';
+const MASTER  = '0000';
+
+// ── STATE ────────────────────────────────────────────────────
+let reportes  = [];
+let cfg       = {};
+let adminOn   = false;
+let currentId = null;
+let photos    = [];
+let docsList  = [];
+let gps       = null;
+let editCtx   = null; // {cat, idx}
+
+// ── DEFAULT CONFIG ────────────────────────────────────────────
+const CFG_DEFAULT = {
+  tipos: [
+    'HALLAZGO','INCIDENTE','ACCIDENTE','SINIESTRO','ROBO','HURTO',
+    'INTENTO DE ROBO','ACTO SUBESTANDAR','CONDICION SUBESTANDAR',
+    'ACTIVIDAD SOSPECHOSA','EVENTO BASC','SEGURIDAD ALIMENTARIA',
+    'DEFENSA ALIMENTARIA','SEGURIDAD VIAL','SEGURIDAD FISICA',
+    'OCURRENCIA OPERATIVA','OTRO'
+  ],
+  estados: ['ABIERTO','EN INVESTIGACION','EN SEGUIMIENTO','CERRADO'],
+  criticidad: [
+    {val:'CRITICO', color:'#B83232', emoji:'🔴'},
+    {val:'ALTO',    color:'#C96A1A', emoji:'🟠'},
+    {val:'MEDIO',   color:'#B8960C', emoji:'🟡'},
+    {val:'BAJO',    color:'#1A7A42', emoji:'🟢'}
+  ],
+  impactos: [
+    'PERSONAS','OPERACIONES','INSTALACIONES','ACTIVOS',
+    'INFORMACION','IMAGEN CORPORATIVA','CADENA LOGISTICA','INOCUIDAD ALIMENTARIA'
+  ],
+  vehiculos: [
+    'CAMION','CAMIONETA','FURGON','MOTO','AUTO','MONTACARGAS',
+    'TRAILER','BUS','CISTERNA','OTRO'
+  ],
+  areas: [
+    'PRODUCCION','EMPAQUE','ALMACEN','LOGISTICA','ADMINISTRACION',
+    'SEGURIDAD','MANTENIMIENTO','ACCESO PRINCIPAL','PATIO DE MANIOBRAS','OTRO'
+  ],
+  basc: [
+    'CONTROL DE ACCESOS','SEGURIDAD FISICA','SEGURIDAD LOGISTICA',
+    'CONTENEDORES','TRANSPORTE','PERSONAL','ASOCIADOS DE NEGOCIO','TECNOLOGIA'
+  ],
+  acciones: {
+    inmediatas: [
+      'AISLAMIENTO DEL AREA','BLOQUEO DE ACCESOS','CONTENCION DEL EVENTO',
+      'EVACUACION','NOTIFICACION A JEFATURA','ATENCION MEDICA',
+      'RECUPERACION DE ACTIVOS','COMUNICACION A AUTORIDADES'
+    ],
+    preventivas: [
+      'CAPACITACION','CHARLAS DE SEGURIDAD','SENALIZACION','INSPECCIONES','PATRULLAJE'
+    ],
+    correctivas: [
+      'REPARACIONES','SANCIONES','MEJORAS OPERATIVAS','ACTUALIZACION DE PROCEDIMIENTOS','REPOSICION DE ACTIVOS'
+    ]
+  },
+  empresa: [
+    'NEGOCIACION PECUARIA SANTA PATRICIA',
+    'CAMPOSOL S.A.',
+    'DANPER TRUJILLO S.A.C.',
+    'TAL S.A.',
+    'AGRICOLA SINTUCO S.A.',
+    'COMPLEJO AGROINDUSTRIAL BETA S.A.',
+    'CORPORACION REFRIGERADOS INY S.A.',
+    'SOCIEDAD AGRICOLA VIRU S.A.',
+    'AGRICOLA CHAPI S.A.',
+    'OTRA EMPRESA'
+  ],
+  sedes: [
+    'VIRU','CHAO','CHIMBOTE','TRUJILLO',
+    'LIMA','MALA','CANETE','CHINCHA',
+    'ICA','PIURA','SULLANA','OTRO'
+  ],
+  fundos: [
+    'FUNDO SAN JUAN','FUNDO EL AGRICULTOR','FUNDO SANTA PATRICIA',
+    'FUNDO LA FLORIDA','FUNDO LOS MEDANOS','FUNDO EL MILAGRO',
+    'FUNDO SAN PEDRO','FUNDO LA ESPERANZA','FUNDO VISTA ALEGRE',
+    'PLANTA EMPAQUE','PLANTA PROCESADORA','PLANTA FRIGORIFICA',
+    'ALMACEN CENTRAL','PACKING','OTRO'
+  ],
+  cargos: [
+    'AGENTE DE SEGURIDAD','SUPERVISOR DE SEGURIDAD',
+    'COORDINADOR DE SEGURIDAD','JEFE DE SEGURIDAD',
+    'GUARDA DE SEGURIDAD','VIGILANTE','RONDIN',
+    'OPERADOR CCTV','CONTROLADOR DE ACCESO',
+    'JEFE DE TURNO','GERENTE DE SEGURIDAD','OTRO'
+  ],
+  adminKey: MASTER
+};
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadAll();
+  renderFormSelects();
+  renderCheckboxes();
+  setDT();
+  genCode();
+  updateDash();
+  forceUC();
+  regSW();
+  initOverlayClose();
+  setInterval(tickReloj, 1000);
+});
+
+function regSW() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ── PERSIST ───────────────────────────────────────────────────
+function saveReportes() { try { localStorage.setItem(DB, JSON.stringify(reportes)); } catch(e){} }
+function saveCfg()      { try { localStorage.setItem(DB_CFG, JSON.stringify(cfg)); } catch(e){} }
+function loadAll() {
+  try { reportes = JSON.parse(localStorage.getItem(DB)||'[]'); } catch(e){ reportes=[]; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(DB_CFG)||'null');
+    cfg = raw ? deepMerge(CFG_DEFAULT, raw) : JSON.parse(JSON.stringify(CFG_DEFAULT));
+  } catch(e){ cfg = JSON.parse(JSON.stringify(CFG_DEFAULT)); }
+}
+
+function deepMerge(def, src) {
+  const out = JSON.parse(JSON.stringify(def));
+  for (const k in src) {
+    if (k in out) {
+      if (Array.isArray(out[k]) && Array.isArray(src[k])) out[k] = src[k];
+      else if (typeof out[k]==='object' && typeof src[k]==='object') out[k] = deepMerge(out[k], src[k]);
+      else out[k] = src[k];
+    } else out[k] = src[k];
+  }
+  return out;
+}
+
+// ── DATETIME ──────────────────────────────────────────────────
+function setDT() {
+  const n = new Date();
+  const p = x => String(x).padStart(2,'0');
+  const date = `${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;
+  const time = `${p(n.getHours())}:${p(n.getMinutes())}`;
+  const disp = `${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()} ${time}`;
+  // Pre-fill fecha solo si vacío
+  const fi = document.getElementById('f-fecha');
+  if (fi && !fi.value) fi.value = date;
+  // Pre-fill hora solo si vacío (primer load)
+  const hi = document.getElementById('f-hora');
+  if (hi && !hi.value) hi.value = time;
+  // Display del header RIS — siempre actualizado
+  const dt = document.getElementById('ris-dt');
+  if (dt) dt.textContent = disp;
+  const dl = document.getElementById('dash-fecha');
+  if (dl) dl.textContent = 'Actualizado: '+disp;
+}
+
+// Reloj en tiempo real — actualiza el display del topbar cada segundo
+function tickReloj() {
+  const n = new Date();
+  const p = x => String(x).padStart(2,'0');
+  const hms  = `${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  const hm   = `${p(n.getHours())}:${p(n.getMinutes())}`;
+  const fecha = `${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}`;
+  const disp = `${fecha} ${hms}`;
+  // RIS code box datetime
+  const dt = document.getElementById('ris-dt');
+  if (dt) dt.textContent = disp;
+  // Dashboard fecha
+  const dl = document.getElementById('dash-fecha');
+  if (dl) dl.textContent = 'Actualizado: ' + fecha + ' ' + hm;
+  // Topbar reloj
+  const tbt = document.getElementById('tb-time');
+  if (tbt) tbt.textContent = hms;
+  const tbd = document.getElementById('tb-date');
+  if (tbd) tbd.textContent = fecha;
+  // f-hora: actualizar solo si vacío
+  const hi = document.getElementById('f-hora');
+  if (hi && !hi.value) hi.value = hm;
+}
+
+function genCode() {
+  const y = new Date().getFullYear();
+  const n = String(reportes.length + 1).padStart(4,'0');
+  const code = `RIS-${y}-${n}`;
+  const el = document.getElementById('ris-code'); if (el) el.textContent = code;
+  return code;
+}
+
+// ── UPPERCASE ─────────────────────────────────────────────────
+function forceUC() {
+  document.querySelectorAll('.uc').forEach(el => {
+    el.addEventListener('input', function() {
+      const p = this.selectionStart;
+      this.value = this.value.toUpperCase();
+      this.setSelectionRange(p,p);
+    });
+  });
+}
+
+// ── SCREENS ──────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const s = document.getElementById('screen-'+name);
+  const b = document.getElementById('nav-'+name);
+  if (s) s.classList.add('active');
+  if (b) b.classList.add('active');
+  window.scrollTo(0,0);
+  if (name==='lista') { populateListFilters(); renderLista(); }
+  if (name==='dashboard') updateDash();
+  if (name==='acerca') updateInfo();
+  if (name==='admin') { updateAdminCounts(); }
+}
+
+// ── CARD TOGGLE ───────────────────────────────────────────────
+function toggleCard(hdr) {
+  const cb = hdr.nextElementSibling;
+  if (!cb) return;
+  const ico = hdr.querySelector('.ch-ico');
+  if (cb.classList.toggle('hide')) {
+    if (ico) ico.style.transform='rotate(-90deg)';
+  } else {
+    if (ico) ico.style.transform='';
+  }
+}
+
+// ── GPS + MAPA (Google Maps iframe + fallback coordenadas) ─────
+let gpsTemp    = null;
+let iframeTimer = null;
+
+function setMapaStatus(color, msg) {
+  const dot = document.getElementById('mapa-dot');
+  const txt = document.getElementById('mapa-msg');
+  if (dot) { dot.style.background = color; dot.style.boxShadow = `0 0 6px ${color}`; }
+  if (txt)  txt.textContent = msg;
+}
+
+function habilitarConfirmar() {
+  const btn = document.getElementById('mapa-confirm-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+function mostrarGmap(lat, lng) {
+  const iframe  = document.getElementById('mapa-gmap');
+  const wrap    = document.getElementById('mapa-gmap-wrap');
+  const bloq    = document.getElementById('mapa-iframe-bloq');
+  if (!iframe || !wrap) return;
+
+  // Mostrar wrap, ocultar loading/error
+  document.getElementById('mapa-loading').style.display = 'none';
+  document.getElementById('mapa-error').style.display   = 'none';
+  wrap.style.display = 'block';
+  bloq.style.display = 'none';
+
+  // Cargar iframe
+  iframe.src = `https://maps.google.com/maps?q=${lat},${lng}&z=17&output=embed&hl=es`;
+
+  // Detectar si iframe fue bloqueado (no dispara onload en muchos casos)
+  // Usamos timer: si a los 7s el iframe no respondió, mostramos fallback
+  clearTimeout(iframeTimer);
+  iframe.onload = () => {
+    clearTimeout(iframeTimer);
+    // iframe cargó OK — ocultar panel bloqueado
+    bloq.style.display = 'none';
+  };
+  iframeTimer = setTimeout(() => {
+    // Comprobamos si el iframe tiene contenido real
+    let vacio = false;
+    try { vacio = !iframe.contentWindow || iframe.contentWindow.location.href === 'about:blank'; } catch(e) { vacio = true; }
+    if (vacio) mostrarBloqueado(lat, lng);
+  }, 8000);
+}
+
+function mostrarBloqueado(lat, lng) {
+  const bloq = document.getElementById('mapa-iframe-bloq');
+  if (!bloq) return;
+  bloq.style.display = 'flex';
+  const coords = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+  const link   = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+  const el = id => document.getElementById(id);
+  if (el('mapa-bloq-coords')) el('mapa-bloq-coords').textContent = coords;
+  if (el('mapa-bloq-link'))   el('mapa-bloq-link').href = link;
+  if (el('mapa-bloq-addr') && gpsTemp && gpsTemp.addr) el('mapa-bloq-addr').textContent = gpsTemp.addr;
+}
+
+function setMapaCoords(lat, lng) {
+  gpsTemp = { lat: parseFloat(lat).toFixed(6), lng: parseFloat(lng).toFixed(6) };
+  const el = document.getElementById('mapa-coords');
+  if (el) el.textContent = `${gpsTemp.lat}, ${gpsTemp.lng}`;
+  habilitarConfirmar();
+  mostrarGmap(gpsTemp.lat, gpsTemp.lng);
+
+  // Geocodificación inversa
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es`)
+    .then(r => r.json())
+    .then(d => {
+      const short = (d.display_name || '').split(',').slice(0,3).join(',').trim();
+      const addrEl = document.getElementById('mapa-addr-txt');
+      if (addrEl) addrEl.textContent = short || 'Dirección no disponible';
+      if (gpsTemp) gpsTemp.addr = short;
+      // Actualizar también en paneles de error/bloqueado
+      const ba = document.getElementById('mapa-bloq-addr');
+      if (ba) ba.textContent = short;
+      const ea = document.getElementById('mapa-error-addr');
+      if (ea) ea.textContent = short;
+    })
+    .catch(() => {
+      const addrEl = document.getElementById('mapa-addr-txt');
+      if (addrEl) addrEl.textContent = 'Sin conexión para dirección';
+    });
+}
+
+function abrirModalMapa() {
+  document.getElementById('ov-mapa').classList.add('active');
+  // Reset
+  document.getElementById('mapa-loading').style.display  = 'flex';
+  document.getElementById('mapa-error').style.display    = 'none';
+  document.getElementById('mapa-gmap-wrap').style.display = 'none';
+  document.getElementById('mapa-subtitulo').textContent  = 'Obteniendo tu posición...';
+  const btn = document.getElementById('mapa-confirm-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+  gpsTemp = null;
+  clearTimeout(iframeTimer);
+  const iframe = document.getElementById('mapa-gmap');
+  if (iframe) iframe.src = '';
+
+  if (gps) {
+    setMapaStatus('#1A7A42', '✓ Ubicación guardada — actualiza si necesitas');
+    document.getElementById('mapa-subtitulo').textContent = 'Ubicación guardada';
+    setMapaCoords(gps.lat, gps.lng);
+  } else {
+    centrarEnMiUbic();
+  }
+}
+
+function centrarEnMiUbic() {
+  document.getElementById('mapa-loading').style.display  = 'flex';
+  document.getElementById('mapa-error').style.display    = 'none';
+  document.getElementById('mapa-gmap-wrap').style.display = 'none';
+  clearTimeout(iframeTimer);
+  setMapaStatus('#C9A227', 'Obteniendo ubicación GPS...');
+  document.getElementById('mapa-subtitulo').textContent = 'Buscando señal GPS...';
+
+  if (!navigator.geolocation) {
+    mostrarError('GPS no disponible en este dispositivo.\nUsa la opción manual para ingresar coordenadas.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+      const prec = accuracy < 20  ? `Precisión excelente ±${Math.round(accuracy)}m` :
+                   accuracy < 50  ? `Buena precisión ±${Math.round(accuracy)}m` :
+                   accuracy < 150 ? `Precisión aceptable ±${Math.round(accuracy)}m` :
+                                    `Baja precisión ±${Math.round(accuracy)}m`;
+      setMapaStatus('#1A7A42', `✓ GPS obtenido · ${prec}`);
+      document.getElementById('mapa-subtitulo').textContent = 'Ubicación detectada · confirma o relocaliza';
+      setMapaCoords(lat, lng);
+    },
+    err => {
+      const msgs = {
+        1: 'Permiso de ubicación denegado.\nVe a Ajustes → Privacidad → Ubicación y permite el acceso al navegador.',
+        2: 'Señal GPS no disponible.\nAsegúrate de estar en zona con cobertura y tener el GPS activo.',
+        3: 'Tiempo agotado al obtener GPS.\nIntenta en un lugar con mejor señal o usa coordenadas manuales.'
+      };
+      mostrarError(msgs[err.code] || 'Error desconocido al obtener GPS.');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function mostrarError(msg) {
+  document.getElementById('mapa-loading').style.display = 'none';
+  document.getElementById('mapa-gmap-wrap').style.display = 'none';
+  const errDiv = document.getElementById('mapa-error');
+  const errMsg = document.getElementById('mapa-error-msg');
+  errDiv.style.display = 'flex';
+  if (errMsg) errMsg.textContent = msg;
+  setMapaStatus('#B83232', 'Error GPS');
+  document.getElementById('mapa-subtitulo').textContent = 'No se pudo obtener la ubicación';
+
+  // Si ya teníamos coords, mostrar el panel de coordenadas con link
+  if (gpsTemp) {
+    const panel = document.getElementById('mapa-coords-panel');
+    const ec    = document.getElementById('mapa-error-coords');
+    const el    = document.getElementById('mapa-gmaps-link');
+    if (panel) panel.style.display = 'block';
+    if (ec)    ec.textContent = `${gpsTemp.lat}, ${gpsTemp.lng}`;
+    if (el)    el.href = `https://www.google.com/maps?q=${gpsTemp.lat},${gpsTemp.lng}&z=17`;
+  }
+}
+
+function abrirManual() {
+  const input = prompt('Ingresa las coordenadas GPS:\nFormato: latitud, longitud\nEjemplo: -13.5170, -76.0065');
+  if (!input) return;
+  const parts = input.replace(/\s/g,'').split(',');
+  const lat = parseFloat(parts[0]);
+  const lng = parseFloat(parts[1]);
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    toast('⚠️ Coordenadas inválidas. Ejemplo: -13.5170, -76.0065');
+    return;
+  }
+  setMapaStatus('#C9A227', 'Coordenadas ingresadas manualmente');
+  document.getElementById('mapa-subtitulo').textContent = 'Coordenadas manuales';
+  setMapaCoords(lat, lng);
+}
+
+function cerrarModalMapa() {
+  document.getElementById('ov-mapa').classList.remove('active');
+  clearTimeout(iframeTimer);
+  const iframe = document.getElementById('mapa-gmap');
+  if (iframe) iframe.src = '';
+}
+
+function confirmarGPS() {
+  if (!gpsTemp) return;
+  gps = { ...gpsTemp };
+  document.getElementById('gps-coords').textContent = `${gps.lat}, ${gps.lng}`;
+  const addrEl = document.getElementById('gps-addr');
+  if (addrEl) addrEl.textContent = gps.addr || 'Coordenadas GPS capturadas';
+  document.getElementById('gps-box').style.display      = 'flex';
+  document.getElementById('gps-map-btn').style.display  = 'inline-flex';
+  document.getElementById('gps-btn-txt').textContent    = 'GPS ✓';
+  cerrarModalMapa();
+  toast('✅ Ubicación GPS confirmada');
+}
+
+function abrirEnGoogleMaps() {
+  const c = gpsTemp || gps;
+  if (!c) return;
+  window.open(`https://www.google.com/maps?q=${c.lat},${c.lng}&z=17`, '_blank');
+}
+
+// Alias de compatibilidad
+function getGPS()          { abrirModalMapa(); }
+function abrirMapa()       { abrirModalMapa(); }
+function abrirGoogleMaps() { abrirEnGoogleMaps(); }
+function abrirWaze() {
+  const c = gpsTemp || gps;
+  if (!c) return;
+  window.open(`https://waze.com/ul?ll=${c.lat},${c.lng}&navigate=yes`, '_blank');
+}
+
+// ── PHOTOS ────────────────────────────────────────────────────
+function addPhotos(files) {
+  Array.from(files).forEach(f => {
+    const r = new FileReader();
+    r.onload = e => { photos.push({name:f.name, data:e.target.result}); renderPhotos(); };
+    r.readAsDataURL(f);
+  });
+}
+function renderPhotos() {
+  document.getElementById('photo-grid').innerHTML = photos.map((p,i) =>
+    `<div class="p-thumb"><img src="${p.data}" alt="${p.name}">
+     <button class="p-rm" onclick="rmPhoto(${i})">&#x2715;</button></div>`
+  ).join('');
+}
+function rmPhoto(i) { photos.splice(i,1); renderPhotos(); }
+function addDocs(files) {
+  Array.from(files).forEach(f => {
+    docsList.push({name:f.name, size:(f.size/1024).toFixed(1)+' KB'});
+    renderDocs();
+  });
+}
+function renderDocs() {
+  document.getElementById('doc-list').innerHTML = docsList.map((d,i) =>
+    `<div style="display:flex;align-items:center;gap:7px;padding:5px;background:var(--surface);border-radius:var(--r);margin-top:4px;border:1px solid var(--border)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--steel)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <span style="font-size:.7rem;flex:1">${d.name}</span>
+      <span style="font-size:.62rem;color:var(--steel)">${d.size}</span>
+      <button onclick="rmDoc(${i})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:11px">&#x2715;</button>
+    </div>`
+  ).join('');
+}
+function rmDoc(i) { docsList.splice(i,1); renderDocs(); }
+
+// ── FORM SELECTS (dynamic from cfg) ──────────────────────────
+function renderFormSelects() {
+  populateSelect('f-tipo',    cfg.tipos);
+  populateSelect('f-estado',  cfg.estados);
+  populateSelect('f-vtipo',   cfg.vehiculos);
+  populateSelect('f-area',    cfg.areas);
+  populateSelect('f-empresa', cfg.empresa);
+  populateSelect('f-unidad',  cfg.sedes);
+  populateSelect('f-planta',  cfg.fundos);
+  populateSelect('f-cargo',   cfg.cargos);
+  populateListFilters();
+}
+function populateSelect(id, arr) {
+  const el = document.getElementById(id); if (!el) return;
+  const first = el.options[0]?.value==='' ? el.options[0].outerHTML : '';
+  el.innerHTML = first + arr.map(v => `<option>${typeof v==='object'?v.val:v}</option>`).join('');
+}
+function populateListFilters() {
+  const el = document.getElementById('fs-tipo'); if (!el) return;
+  el.innerHTML = '<option value="">Todos los tipos</option>' + cfg.tipos.map(t=>`<option>${t}</option>`).join('');
+  const es = document.getElementById('fs-est'); if (!es) return;
+  es.innerHTML = '<option value="">Estados</option>' + cfg.estados.map(t=>`<option>${t}</option>`).join('');
+}
+
+// ── CHECKBOXES (dynamic) ──────────────────────────────────────
+function renderCheckboxes() {
+  renderChkGrid('chk-impacto', cfg.impactos, 'imp');
+  renderChkGrid('chk-basc', cfg.basc, 'basc');
+  renderChkGrid('chk-acc-inm', cfg.acciones.inmediatas, 'acI');
+  renderChkGrid('chk-acc-prev', cfg.acciones.preventivas, 'acP');
+  renderChkGrid('chk-acc-cor', cfg.acciones.correctivas, 'acC');
+}
+function renderChkGrid(id, arr, prefix) {
+  const el = document.getElementById(id); if (!el) return;
+  el.innerHTML = arr.map((v,i) =>
+    `<div class="chk-item"><input type="checkbox" id="${prefix}${i}" value="${v}"><label for="${prefix}${i}">${v}</label></div>`
+  ).join('');
+}
+function getChecked(prefix, arr) {
+  return arr.map((_,i) => document.getElementById(prefix+i)).filter(el=>el&&el.checked).map(el=>el.value);
+}
+
+// ── CRITICALITY + LABEL SUGGEST ───────────────────────────────
+const TIPOS_HALLAZGO = ['HALLAZGO','CONDICION SUBESTANDAR','ACTO SUBESTANDAR','ACTIVIDAD SOSPECHOSA','SEGURIDAD FISICA','OCURRENCIA OPERATIVA'];
+
+function sugerirCrit(val) {
+  const criticos = ['ROBO','SINIESTRO','ACCIDENTE','INTENTO DE ROBO'];
+  const altos    = ['HURTO','EVENTO BASC','DEFENSA ALIMENTARIA'];
+  if (criticos.includes(val))      document.getElementById('crit1').checked=true;
+  else if (altos.includes(val))    document.getElementById('crit2').checked=true;
+  else if (val)                    document.getElementById('crit3').checked=true;
+
+  // Cambiar etiqueta y placeholder según tipo
+  const lbl  = document.getElementById('lbl-como');
+  const fld  = document.getElementById('f-como');
+  if (!lbl || !fld) return;
+  if (TIPOS_HALLAZGO.includes(val)) {
+    lbl.textContent = '¿Cómo se encontró / Cómo se encuentra?';
+    fld.placeholder = 'DESCRIBA EL ESTADO EN QUE FUE ENCONTRADO, CONDICIÓN ACTUAL...';
+  } else {
+    lbl.textContent = '¿Cómo Ocurrió?';
+    fld.placeholder = 'MECÁNICA DEL EVENTO, SECUENCIA DE HECHOS, FACTORES CONTRIBUYENTES...';
+  }
+}
+
+// ── SAVE REPORT ───────────────────────────────────────────────
+function guardar() {
+  const empresa = document.getElementById('f-empresa').value.trim();
+  const reporta = document.getElementById('f-reporta').value.trim();
+  const tipo    = document.getElementById('f-tipo').value;
+  const resumen = document.getElementById('f-resumen').value.trim();
+  const crit    = document.querySelector('input[name=crit]:checked')?.value;
+
+  if (!empresa||!reporta||!tipo||!resumen||!crit) {
+    toast('Complete los campos obligatorios (*)'); return;
+  }
+
+  const r = {
+    id:        Date.now(),
+    codigo:    document.getElementById('ris-code').textContent,
+    fecha:     document.getElementById('f-fecha').value,
+    hora:      document.getElementById('f-hora').value,
+    empresa:   empresa,
+    unidad:    document.getElementById('f-unidad').value,
+    planta:    document.getElementById('f-planta').value,
+    area:      document.getElementById('f-area').value,
+    ubicacion: document.getElementById('f-ubic').value,
+    reporta:   reporta,
+    cargo:     document.getElementById('f-cargo').value,
+    telefono:  document.getElementById('f-tel').value,
+    correo:    document.getElementById('f-correo').value,
+    tipo:      tipo,
+    criticidad:crit,
+    estado:    document.getElementById('f-estado').value||'ABIERTO',
+    impacto:   getChecked('imp', cfg.impactos),
+    resumen:   resumen,
+    descripcion:document.getElementById('f-desc').value,
+    como:      document.getElementById('f-como').value,
+    involucrados:document.getElementById('f-involuc').value,
+    testigos:  document.getElementById('f-testigos').value,
+    danos:     document.getElementById('f-danos').value,
+    basc:      document.getElementById('f-basc').value,
+    bascCats:  getChecked('basc', cfg.basc),
+    alim:      getChecked('al', [0,1,2,3,4,5,6].map(i=>'_')),
+    defensa:   getChecked('df', [0,1,2,3,4].map(i=>'_')),
+    vtipo:     document.getElementById('f-vtipo').value,
+    placa:     document.getElementById('f-placa').value,
+    conductor: document.getElementById('f-cond').value,
+    licencia:  document.getElementById('f-lic').value,
+    ruta:      document.getElementById('f-ruta').value,
+    km:        document.getElementById('f-km').value,
+    vfactores: getChecked('vl',[0,1,2,3,4,5].map(i=>'_')),
+    accInm:    getChecked('acI', cfg.acciones.inmediatas),
+    accPrev:   getChecked('acP', cfg.acciones.preventivas),
+    accCor:    getChecked('acC', cfg.acciones.correctivas),
+    accDesc:   document.getElementById('f-acc-desc').value,
+    obs:       document.getElementById('f-obs').value,
+    gps:       gps,
+    nFotos:    photos.length,
+    fotos:     photos.slice(0,4).map(p=>p.data),
+    docs:      docsList.map(d=>d.name),
+    creadoEn:  new Date().toISOString()
+  };
+  // fix: re-read checkboxes properly
+  r.alim = ['Contaminación','Adulteración','Sabotaje','Manipulación Indebida','Riesgo Microbiológico','Riesgo Químico','Riesgo Físico']
+    .filter((_,i) => document.getElementById('al'+(i+1))?.checked);
+  r.defensa = ['Amenaza Intencional','Vulnerabilidad','Sabotaje Interno','Sabotaje Externo','Producto Comprometido']
+    .filter((_,i) => document.getElementById('df'+(i+1))?.checked);
+  r.vfactores = ['Fatiga del Conductor','Distracción','Exceso de Velocidad','Cond. Climáticas Adversas','Falla Mecánica','Exceso de Carga']
+    .filter((_,i) => document.getElementById('vl'+(i+1))?.checked);
+
+  reportes.push(r);
+  saveReportes();
+  limpiar();
+  toast('RIS guardado: '+r.codigo);
+  setTimeout(()=>showScreen('lista'), 1000);
+}
+
+// ── CLEAR FORM ────────────────────────────────────────────────
+function limpiar() {
+  ['f-empresa','f-unidad','f-planta','f-area','f-ubic','f-reporta','f-cargo','f-tel','f-correo',
+   'f-resumen','f-desc','f-como','f-involuc','f-testigos','f-danos',
+   'f-acc-desc','f-obs','f-placa','f-cond','f-lic','f-ruta','f-km'
+  ].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-tipo','f-estado','f-basc','f-vtipo','f-planta','f-area'].forEach(id => {
+    const el=document.getElementById(id); if(el) el.selectedIndex=0;
+  });
+  document.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll('input[name=crit]').forEach(r=>r.checked=false);
+  photos=[]; docsList=[]; gps=null; gpsTemp=null;
+  document.getElementById('photo-grid').innerHTML='';
+  document.getElementById('doc-list').innerHTML='';
+  document.getElementById('gps-box').style.display='none';
+  document.getElementById('gps-map-btn').style.display='none';
+  if (mapaMarker && mapaL) { mapaL.removeLayer(mapaMarker); mapaMarker = null; }
+  const gpsBtn = document.getElementById('gps-btn-txt');
+  if (gpsBtn) gpsBtn.textContent = 'Obtener GPS';
+  const fh = document.getElementById('f-fecha'); if(fh) fh.value='';
+  const hh = document.getElementById('f-hora'); if(hh){ hh.value=''; delete hh.dataset.userSet; }
+  setDT(); genCode();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function updateDash() {
+  const total  = reportes.length;
+  const crit   = reportes.filter(r=>r.criticidad==='CRITICO').length;
+  const now    = new Date();
+  const mes    = reportes.filter(r=>{ const d=new Date(r.creadoEn); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); }).length;
+  const cerr   = reportes.filter(r=>r.estado==='CERRADO').length;
+
+  setText('st-total', total);
+  setText('st-crit',  crit);
+  setText('st-mes',   mes);
+  setText('st-cerr',  cerr);
+  setText('st-d-total', `${total} acumulados`);
+  setText('st-d-crit',  crit>0 ? `${crit} sin resolver` : 'ninguno activo');
+  setText('st-d-mes',   `${mes} este mes`);
+  setText('st-d-cerr',  total>0 ? `${Math.round(cerr/total*100)}% resueltos` : 'sin datos');
+
+  // Chart tipos
+  renderBarChart('chart-tipos', buildCount(reportes.map(r=>r.tipo)), 6,
+    ['#1A5276','#1E8449','#C96A1A','#B83232','#6B46C1','#2C7A7B']);
+
+  // Chart criticidad
+  renderBarChart('chart-crits',
+    {'CRITICO': crit, 'ALTO': reportes.filter(r=>r.criticidad==='ALTO').length,
+     'MEDIO':   reportes.filter(r=>r.criticidad==='MEDIO').length,
+     'BAJO':    reportes.filter(r=>r.criticidad==='BAJO').length},
+    4, ['#B83232','#C96A1A','#B8960C','#1A7A42']);
+
+  // Chart estados
+  renderBarChart('chart-estados', buildCount(reportes.map(r=>r.estado)), 5,
+    ['#B83232','#C96A1A','#B8960C','#1A7A42','#1A5276']);
+
+  // Recent
+  const recientes = [...reportes].reverse().slice(0,5);
+  document.getElementById('dash-recientes').innerHTML = recientes.length
+    ? recientes.map(r=>riHtml(r)).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><h3>Sin reportes</h3><p>Registra el primer RIS</p></div>`;
+}
+
+function buildCount(arr) {
+  const c={}; arr.forEach(v=>{ if(v) c[v]=(c[v]||0)+1; }); return c;
+}
+function renderBarChart(id, counts, max, colors) {
+  const el = document.getElementById(id); if (!el) return;
+  const sorted = Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,max);
+  if (!sorted.length) { el.innerHTML='<div class="empty" style="padding:.75rem"><p>Sin datos suficientes</p></div>'; return; }
+  const maxV = sorted[0][1] || 1;
+  el.innerHTML = sorted.map(([k,v],i) =>
+    `<div class="brow">
+      <div class="blbl" title="${k}">${k.substring(0,12)}</div>
+      <div class="btrack"><div class="bfill" style="width:${(v/maxV*100).toFixed(1)}%;background:${colors[i%colors.length]}"></div></div>
+      <div class="bval">${v}</div>
+    </div>`
+  ).join('');
+}
+function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+
+// ── LIST SCREEN ───────────────────────────────────────────────
+function renderLista() {
+  const txt  = (document.getElementById('fs-txt')?.value||'').toLowerCase();
+  const tipo = document.getElementById('fs-tipo')?.value||'';
+  const crit = document.getElementById('fs-crit')?.value||'';
+  const est  = document.getElementById('fs-est')?.value||'';
+
+  const filtered = [...reportes].reverse().filter(r =>
+    (!txt  || r.codigo.toLowerCase().includes(txt)||r.tipo.toLowerCase().includes(txt)||r.empresa.toLowerCase().includes(txt)||r.resumen.toLowerCase().includes(txt)) &&
+    (!tipo || r.tipo===tipo) &&
+    (!crit || r.criticidad===crit) &&
+    (!est  || r.estado===est)
+  );
+  setText('lista-cnt', `${filtered.length} de ${reportes.length} registros`);
+  document.getElementById('report-list').innerHTML = filtered.length
+    ? filtered.map(r=>riHtml(r)).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><h3>Sin resultados</h3><p>Ajusta los filtros</p></div>`;
+}
+
+function critCls(c) {
+  return c==='CRITICO'?'c-crit':c==='ALTO'?'c-alto':c==='MEDIO'?'c-med':'c-bajo';
+}
+function critColor(c) {
+  return c==='CRITICO'?'var(--red)':c==='ALTO'?'var(--orange)':c==='MEDIO'?'var(--yellow)':'var(--green)';
+}
+function critBadge(c) {
+  return c==='CRITICO'?'b-red':c==='ALTO'?'b-orange':c==='MEDIO'?'b-yellow':'b-green';
+}
+function riHtml(r) {
+  return `<div class="ritem ${critCls(r.criticidad)}" onclick="verDetalle(${r.id})">
+    <div class="ri-dot" style="background:${critColor(r.criticidad)}"></div>
+    <div class="ri-info">
+      <div class="ri-code">${r.codigo}</div>
+      <div class="ri-type">${r.tipo}</div>
+      <div class="ri-meta">${r.empresa}${r.fecha?' &middot; '+r.fecha:''}</div>
+    </div>
+    <div class="ri-right">
+      <span class="badge ${critBadge(r.criticidad)}">${r.criticidad}</span>
+      <span class="badge b-navy" style="font-size:.55rem">${r.estado||'ABIERTO'}</span>
+    </div>
+  </div>`;
+}
+
+// ── DETALLE ────────────────────────────────────────────────────
+function verDetalle(id) {
+  const r = reportes.find(x=>x.id===id); if (!r) return;
+  currentId = id;
+  document.getElementById('det-title').textContent = r.codigo;
+  renderEstadoBar(r);
+  const s = (title, rows) => {
+    const valid = rows.filter(([,v])=>v&&v.toString().trim());
+    if (!valid.length) return '';
+    return `<div class="ds-title">${title}</div>` +
+      valid.map(([l,v])=>`<div class="dr"><div class="dl">${l}</div><div class="dv">${v}</div></div>`).join('');
+  };
+  const arr = a => Array.isArray(a)&&a.length ? a.join(' · ') : null;
+  document.getElementById('det-body').innerHTML = `
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+      <span class="badge ${critBadge(r.criticidad)}">${r.criticidad}</span>
+      <span class="badge b-navy">${r.estado||'ABIERTO'}</span>
+      <span class="badge b-gold">${r.tipo}</span>
+    </div>
+    ${s('Datos Generales',[['Empresa',r.empresa],['Unidad',r.unidad],['Planta',r.planta],['Área',r.area],['Ubicación',r.ubicacion],['Fecha',r.fecha],['Hora',r.hora],['GPS',r.gps?r.gps.lat+', '+r.gps.lng:null]])}
+    ${s('Persona que Reporta',[['Nombre',r.reporta],['Cargo',r.cargo],['Teléfono',r.telefono],['Correo',r.correo]])}
+    ${s('Descripción',[['Resumen',r.resumen],['Descripción',r.descripcion],[TIPOS_HALLAZGO.includes(r.tipo)?'¿Cómo se encontró?':'¿Cómo ocurrió?',r.como],['Involucrados',r.involucrados],['Testigos',r.testigos],['Daños',r.danos]])}
+    ${s('Clasificación',[['Tipo',r.tipo],['Criticidad',r.criticidad],['Impacto',arr(r.impacto)]])}
+    ${r.basc?s('BASC',[['Cumplimiento',r.basc],['Categorías',arr(r.bascCats)]]):``}
+    ${arr(r.alim)?s('Seg. Alimentaria',[['Factores',arr(r.alim)]]):``}
+    ${arr(r.defensa)?s('Defensa Alimentaria',[['Factores',arr(r.defensa)]]):``}
+    ${r.vtipo?s('Seguridad Vial',[['Vehículo',r.vtipo],['Placa',r.placa],['Conductor',r.conductor],['Ruta',r.ruta],['Factores',arr(r.vfactores)]]):``}
+    ${s('Acciones',[['Inmediatas',arr(r.accInm)],['Preventivas',arr(r.accPrev)],['Correctivas',arr(r.accCor)],['Adicional',r.accDesc]])}
+    ${r.obs?s('Observaciones',[['Obs.',r.obs]]):``}
+    ${r.nFotos?`<div class="ds-title">Evidencias</div><div class="dr"><div class="dl">Fotos</div><div class="dv">${r.nFotos} adjunto(s)</div></div>`:``}
+    ${r.fotos&&r.fotos.length?`<div class="photo-grid" style="margin-top:8px">${r.fotos.map(d=>`<div class="p-thumb"><img src="${d}" alt=""></div>`).join('')}</div>`:``}
+  `;
+  openOverlay('ov-detalle');
+}
+
+function eliminarActual() {
+  if (!currentId) return;
+  if (!confirm('¿Eliminar este reporte? La acción no puede deshacerse.')) return;
+  reportes = reportes.filter(r=>r.id!==currentId);
+  saveReportes();
+  closeOverlay('ov-detalle');
+  renderLista();
+  updateDash();
+  toast('Reporte eliminado');
+}
+
+// ── CAMBIO DE ESTADO DESDE DETALLE ────────────────────────────
+function renderEstadoBar(r) {
+  const bar = document.getElementById('det-estado-btns');
+  if (!bar) return;
+  const estadoColors = {
+    'ABIERTO':         {bg:'var(--red-bg)',    color:'var(--red)',    border:'var(--red)'},
+    'EN INVESTIGACION':{bg:'var(--orange-bg)', color:'var(--orange)', border:'var(--orange)'},
+    'EN SEGUIMIENTO':  {bg:'var(--yellow-bg)', color:'var(--yellow)', border:'var(--yellow)'},
+    'CERRADO':         {bg:'var(--green-bg)',  color:'var(--green)',  border:'var(--green)'}
+  };
+  const estados = cfg.estados && cfg.estados.length ? cfg.estados : ['ABIERTO','EN INVESTIGACION','EN SEGUIMIENTO','CERRADO'];
+  bar.innerHTML = estados.map(est => {
+    const isCurrent = (r.estado || 'ABIERTO') === est;
+    const c = estadoColors[est] || {bg:'rgba(13,27,42,.08)', color:'var(--navy)', border:'var(--border)'};
+    return `<button
+      onclick="cambiarEstado('${est}')"
+      style="padding:3px 10px;border-radius:20px;font-size:.58rem;font-weight:700;text-transform:uppercase;
+             letter-spacing:.04em;cursor:pointer;border:1.5px solid ${c.border};
+             background:${isCurrent ? c.bg : 'transparent'};
+             color:${isCurrent ? c.color : 'var(--steel)'};
+             ${isCurrent ? '' : 'opacity:.65'}">
+      ${isCurrent ? '✓ ' : ''}${est}
+    </button>`;
+  }).join('');
+}
+
+function cambiarEstado(nuevoEstado) {
+  const r = reportes.find(x => x.id === currentId);
+  if (!r) return;
+  if (r.estado === nuevoEstado) return;
+  const prevEstado = r.estado || 'ABIERTO';
+  r.estado = nuevoEstado;
+  saveReportes();
+  renderEstadoBar(r);
+  // Actualizar badge en el cuerpo del detalle
+  const detBody = document.getElementById('det-body');
+  if (detBody) {
+    const estadoBadge = detBody.querySelector('.badge.b-navy');
+    if (estadoBadge) estadoBadge.textContent = nuevoEstado;
+  }
+  // Refrescar lista y dashboard si están activos
+  renderLista();
+  updateDash();
+  toast(`Estado: ${prevEstado} → ${nuevoEstado}`);
+}
+
+// ── OVERLAYS ──────────────────────────────────────────────────
+function openOverlay(id) { document.getElementById(id)?.classList.add('on'); }
+function closeOverlay(id) { document.getElementById(id)?.classList.remove('on'); }
+// overlay close on bg click - deferred to after DOM ready
+function initOverlayClose() {
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target===o) o.classList.remove('on'); });
+  });
+}
+
+// ── ADMIN LOGIN ───────────────────────────────────────────────
+function openLogin() {
+  if (adminOn) { showScreen('admin'); return; }
+  ['pin1','pin2','pin3','pin4'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('login-err').classList.remove('on');
+  openOverlay('ov-login');
+  setTimeout(()=>document.getElementById('pin1')?.focus(), 200);
+}
+function pinNext(el, nextId) {
+  if (el.value.length===1) document.getElementById(nextId)?.focus();
+}
+function pinBack(e, el, prevId) {
+  if (e.key==='Backspace'&&el.value===''&&prevId) document.getElementById(prevId)?.focus();
+}
+function pinCheck() {
+  const pin = ['pin1','pin2','pin3','pin4'].map(id=>document.getElementById(id)?.value||'').join('');
+  if (pin.length===4) loginAdmin();
+}
+function loginAdmin() {
+  const pin = ['pin1','pin2','pin3','pin4'].map(id=>document.getElementById(id)?.value||'').join('');
+  const key = cfg.adminKey || MASTER;
+  if (pin===key) {
+    adminOn = true;
+    closeOverlay('ov-login');
+    document.getElementById('session-badge').style.display='inline-flex';
+    showScreen('admin');
+    updateAdminCounts();
+    toast('Acceso concedido — Modo Administrador');
+  } else {
+    document.getElementById('login-err').classList.add('on');
+    ['pin1','pin2','pin3','pin4'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('pin1')?.focus();
+  }
+}
+function logoutAdmin() {
+  adminOn = false;
+  document.getElementById('session-badge').style.display='none';
+  document.querySelectorAll('.ag-card').forEach(c=>c.classList.remove('act'));
+  document.getElementById('admin-panel').style.display='none';
+  showScreen('dashboard');
+  toast('Sesión de administrador cerrada');
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────────
+function updateAdminCounts() {
+  const m = {
+    'ac-tipos':   cfg.tipos.length,
+    'ac-estados': cfg.estados.length,
+    'ac-crit':    cfg.criticidad.length,
+    'ac-imp':     cfg.impactos.length,
+    'ac-veh':     cfg.vehiculos.length,
+    'ac-areas':   cfg.areas.length,
+    'ac-basc':    cfg.basc.length,
+    'ac-acc':     cfg.acciones.inmediatas.length+cfg.acciones.preventivas.length+cfg.acciones.correctivas.length,
+    'ac-emp':     cfg.empresa.length,
+    'ac-sedes':   (cfg.sedes||[]).length,
+    'ac-fundos':  (cfg.fundos||[]).length,
+    'ac-cargos':  (cfg.cargos||[]).length
+  };
+  for (const [id,v] of Object.entries(m)) setText(id, v);
+}
+
+function adminTab(cat) {
+  if (!adminOn) { openLogin(); return; }
+  document.querySelectorAll('.ag-card').forEach(c=>c.classList.remove('act'));
+  document.getElementById('ag-'+cat)?.classList.add('act');
+  const panel = document.getElementById('admin-panel');
+  panel.style.display='block';
+  const titles = {
+    tipos:'Tipos de Evento', estados:'Estados RIS', criticidad:'Niveles de Criticidad',
+    impactos:'Tipos de Impacto', vehiculos:'Tipos de Vehículo', areas:'Áreas / Zonas',
+    basc:'Categorías BASC', acciones:'Acciones Tomadas',
+    empresa:'Empresas / Razones Sociales', sedes:'Unidades / Sedes',
+    fundos:'Plantas / Fundos / Instalaciones', cargos:'Cargos / Puestos',
+    clave:'Cambiar Clave de Administrador'
+  };
+  setText('admin-panel-title', titles[cat]||cat);
+
+  const body = document.getElementById('admin-panel-body');
+  if (cat==='clave') { body.innerHTML = claveForm(); return; }
+  if (cat==='acciones') { body.innerHTML = accionesPanel(); return; }
+  if (cat==='criticidad') { body.innerHTML = critPanel(); return; }
+
+  const data = cfg[cat];
+  body.innerHTML = buildParamList(data, cat) + addRowHTML(cat);
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function buildParamList(arr, cat) {
+  if (!arr||!arr.length) return '<div class="empty" style="padding:.75rem"><p>Sin elementos. Agregue el primero.</p></div>';
+  return `<div class="param-list" id="plist-${cat}">`+
+    arr.map((v,i) => {
+      const label = typeof v==='object' ? v.val : v;
+      return `<div class="param-item" id="pi-${cat}-${i}">
+        <div class="pi-dot" style="background:var(--gold)"></div>
+        <div class="pi-text">${label}</div>
+        <div class="pi-acts">
+          <button class="pi-btn" onclick="editParam('${cat}',${i})" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="pi-btn del" onclick="delParam('${cat}',${i})" title="Eliminar"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function addRowHTML(cat) {
+  return `<div class="add-row">
+    <input type="text" id="add-inp-${cat}" class="uc" placeholder="NUEVO ELEMENTO..." onkeydown="if(event.key==='Enter')addParam('${cat}')">
+    <button class="btn btn-gold btn-sm" onclick="addParam('${cat}')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Agregar
+    </button>
+  </div>`;
+}
+
+function accionesPanel() {
+  const subs = [
+    {key:'inmediatas', label:'Acciones Inmediatas'},
+    {key:'preventivas', label:'Acciones Preventivas'},
+    {key:'correctivas', label:'Acciones Correctivas'}
+  ];
+  return subs.map(({key,label}) =>
+    `<div style="margin-bottom:1rem">
+      <div class="ag-title" style="margin-top:0">${label}</div>
+      ${buildParamList(cfg.acciones[key], 'acc-'+key)}
+      <div class="add-row">
+        <input type="text" id="add-inp-acc-${key}" class="uc" placeholder="NUEVA ACCION..." onkeydown="if(event.key==='Enter')addAccion('${key}')">
+        <button class="btn btn-gold btn-sm" onclick="addAccion('${key}')">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
+        </button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function critPanel() {
+  return `<div class="param-list">` +
+    cfg.criticidad.map((c,i) =>
+      `<div class="param-item">
+        <div class="pi-dot" style="background:${c.color}"></div>
+        <div class="pi-text">${c.val}</div>
+        <div class="pi-color">${c.color}</div>
+        <div class="pi-acts">
+          <button class="pi-btn" onclick="editCrit(${i})" title="Editar color"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        </div>
+      </div>`
+    ).join('') +
+  `</div>
+  <p style="font-size:.67rem;color:var(--steel-lt);margin-top:8px">Nota: los niveles de criticidad son fijos. Solo puede editar el color de cada nivel.</p>`;
+}
+
+function claveForm() {
+  return `<div class="key-form">
+    <div class="fg-item"><label>Clave Actual</label><input type="password" id="key-old" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+    <div class="fg-item"><label>Nueva Clave (4 dígitos)</label><input type="password" id="key-new" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+    <div class="fg-item"><label>Confirmar Nueva Clave</label><input type="password" id="key-cf" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+    <button class="btn btn-gold btn-full" style="margin-top:4px" onclick="cambiarClave()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Actualizar Clave
+    </button>
+    <div id="key-msg" style="display:none;margin-top:8px;font-size:.72rem;font-weight:600;padding:.5rem .75rem;border-radius:var(--r)"></div>
+  </div>`;
+}
+
+// ── PARAM CRUD ────────────────────────────────────────────────
+function addParam(cat) {
+  const inp = document.getElementById('add-inp-'+cat);
+  const val = inp?.value.trim().toUpperCase();
+  if (!val) { toast('Ingrese un valor'); return; }
+  if (cfg[cat].includes(val)) { toast('El elemento ya existe'); return; }
+  cfg[cat].push(val);
+  saveCfg(); renderFormSelects(); renderCheckboxes();
+  adminTab(cat); toast('Elemento agregado');
+}
+
+function addAccion(sub) {
+  const inp = document.getElementById('add-inp-acc-'+sub);
+  const val = inp?.value.trim().toUpperCase();
+  if (!val) { toast('Ingrese un valor'); return; }
+  if (cfg.acciones[sub].includes(val)) { toast('Ya existe'); return; }
+  cfg.acciones[sub].push(val);
+  saveCfg(); renderCheckboxes();
+  adminTab('acciones'); toast('Acción agregada');
+}
+
+function delParam(cat, i) {
+  if (!confirm('¿Eliminar este elemento?')) return;
+  if (cat.startsWith('acc-')) {
+    const sub = cat.replace('acc-','');
+    cfg.acciones[sub].splice(i,1);
+  } else {
+    cfg[cat].splice(i,1);
+  }
+  saveCfg(); renderFormSelects(); renderCheckboxes();
+  adminTab(cat.startsWith('acc-')?'acciones':cat);
+  updateAdminCounts();
+  toast('Elemento eliminado');
+}
+
+function editParam(cat, i) {
+  editCtx = {cat, i};
+  const val = typeof cfg[cat][i]==='object' ? cfg[cat][i].val : cfg[cat][i];
+  document.getElementById('edit-val').value = val;
+  document.getElementById('edit-color-row').style.display='none';
+  document.getElementById('edit-emoji-row').style.display='none';
+  setText('edit-title', 'Editar: '+val);
+  openOverlay('ov-edit');
+}
+
+function editCrit(i) {
+  editCtx = {cat:'criticidad', i};
+  const c = cfg.criticidad[i];
+  document.getElementById('edit-val').value = c.val;
+  document.getElementById('edit-color-row').style.display='block';
+  document.getElementById('edit-color-picker').value = c.color;
+  document.getElementById('edit-color-hex').value = c.color;
+  document.getElementById('edit-emoji-row').style.display='none';
+  setText('edit-title', 'Editar nivel: '+c.val);
+  openOverlay('ov-edit');
+  document.getElementById('edit-color-picker').addEventListener('input', function(){
+    document.getElementById('edit-color-hex').value = this.value;
+  });
+}
+
+function guardarEdicion() {
+  if (!editCtx) return;
+  const {cat, i} = editCtx;
+  const val = document.getElementById('edit-val').value.trim().toUpperCase();
+  if (!val) { toast('El valor no puede estar vacío'); return; }
+  if (cat==='criticidad') {
+    const color = document.getElementById('edit-color-hex').value.trim() || '#888888';
+    cfg.criticidad[i].color = color;
+  } else {
+    if (Array.isArray(cfg[cat])) cfg[cat][i] = val;
+  }
+  saveCfg(); renderFormSelects(); renderCheckboxes();
+  closeOverlay('ov-edit');
+  const tabCat = cat==='criticidad'?'criticidad':cat;
+  adminTab(tabCat);
+  updateAdminCounts();
+  toast('Actualizado correctamente');
+}
+
+function cambiarClave() {
+  const old = document.getElementById('key-old').value;
+  const nw  = document.getElementById('key-new').value;
+  const cf  = document.getElementById('key-cf').value;
+  const msg = document.getElementById('key-msg');
+  const cur = cfg.adminKey || MASTER;
+  const show = (txt, ok) => {
+    msg.style.display='block';
+    msg.style.background = ok?'var(--green-bg)':'var(--red-bg)';
+    msg.style.color = ok?'var(--green)':'var(--red)';
+    msg.style.border = `1px solid ${ok?'var(--green)':'var(--red)'}`;
+    msg.textContent = txt;
+  };
+  if (old!==cur) { show('La clave actual es incorrecta.',false); return; }
+  if (nw.length!==4||!/^\d{4}$/.test(nw)) { show('La nueva clave debe ser exactamente 4 dígitos numéricos.',false); return; }
+  if (nw!==cf) { show('Las claves nuevas no coinciden.',false); return; }
+  cfg.adminKey = nw;
+  saveCfg();
+  show('Clave actualizada correctamente. Use la nueva clave en el próximo acceso.',true);
+}
+
+function cerrarPanel() {
+  document.getElementById('admin-panel').style.display='none';
+  document.querySelectorAll('.ag-card').forEach(c=>c.classList.remove('act'));
+}
+
+// ── INFO ──────────────────────────────────────────────────────
+function updateInfo() {
+  setText('info-total', reportes.length+' registrados');
+  try {
+    const kb = (JSON.stringify({r:reportes,c:cfg}).length*2/1024).toFixed(1);
+    setText('info-storage', kb+' KB en uso');
+  } catch(e){}
+}
+function borrarTodo() {
+  if (!confirm('¿Eliminar TODOS los reportes? Acción irreversible.')) return;
+  if (!confirm('Segunda confirmación: se perderán todos los datos.')) return;
+  reportes=[]; saveReportes(); updateDash(); updateInfo();
+  toast('Todos los datos eliminados');
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────
+function expPDF() {
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF();
+  const list = getFiltered();
+  // Header
+  doc.setFillColor(13,27,42); doc.rect(0,0,210,28,'F');
+  doc.setTextColor(201,162,39); doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text('RIS — REPORTE DE INCIDENTES DE SEGURIDAD PATRIMONIAL',105,11,{align:'center'});
+  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
+  doc.text(`Generado: ${new Date().toLocaleString('es-PE')}   |   Total: ${list.length} registros`,105,18,{align:'center'});
+  doc.text('Edward Quezada M. | Seguridad Patrimonial | linkedin.com/in/edwardqm',105,24,{align:'center'});
+  let y=36;
+  list.forEach(r => {
+    if (y>265) { doc.addPage(); y=15; }
+    const cc = {'CRITICO':[184,50,50],'ALTO':[201,106,26],'MEDIO':[184,150,12],'BAJO':[26,122,66]};
+    const [cr,cg,cb] = cc[r.criticidad]||[74,85,104];
+    doc.setFillColor(cr,cg,cb); doc.rect(10,y-2,2.5,12,'F');
+    doc.setFillColor(247,248,250); doc.rect(12.5,y-2,182,12,'F');
+    doc.setTextColor(13,27,42); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text(`${r.codigo}  |  ${r.tipo}  |  ${r.criticidad}`,15,y+3);
+    doc.setFont('helvetica','normal'); doc.setTextColor(74,85,104);
+    doc.text(`${r.empresa}  ·  ${r.fecha} ${r.hora}  ·  ${r.estado}`,15,y+8);
+    const lines = doc.splitTextToSize(r.resumen||'',178);
+    if (lines[0]) { doc.setTextColor(13,27,42); doc.text(lines[0],15,y+12); }
+    y+=18;
+  });
+  const pgs=doc.getNumberOfPages();
+  for(let i=1;i<=pgs;i++){
+    doc.setPage(i); doc.setFillColor(13,27,42); doc.rect(0,283,210,14,'F');
+    doc.setTextColor(201,162,39); doc.setFontSize(6.5);
+    doc.text('RIS v2.0 | Edward Quezada M. | Seguridad Patrimonial',10,290);
+    doc.text(`Pág. ${i} / ${pgs}`,200,290,{align:'right'});
+  }
+  doc.save(`RIS_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF generado');
+}
+
+function expPDFSingle() {
+  if (!currentId) return;
+  const r = reportes.find(x=>x.id===currentId); if (!r) return;
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFillColor(13,27,42); doc.rect(0,0,210,32,'F');
+  doc.setTextColor(201,162,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
+  doc.text('REPORTE DE INCIDENTE DE SEGURIDAD PATRIMONIAL',105,11,{align:'center'});
+  doc.setTextColor(255,255,255); doc.setFontSize(9);
+  doc.text(r.codigo,105,19,{align:'center'});
+  doc.setFontSize(7);
+  doc.text(`${r.tipo}  |  ${r.criticidad}  |  ${r.estado}`,105,25,{align:'center'});
+  doc.text(`${r.fecha} ${r.hora}  |  ${r.empresa}`,105,30,{align:'center'});
+  let y=40;
+  const field = (lbl,val) => {
+    if (!val||!val.toString().trim()) return y;
+    doc.setTextColor(74,85,104); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+    doc.text(lbl.toUpperCase()+':',10,y);
+    doc.setTextColor(13,27,42); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    const lines = doc.splitTextToSize(val.toString(),178);
+    doc.text(lines,10,y+4.5);
+    return y+4.5+(lines.length*3.8)+3;
+  };
+  const rows = [['Empresa',r.empresa],['Unidad / Sede',r.unidad],['Área',r.area],
+    ['Reportado por',r.reporta],['Cargo',r.cargo],['Tipo de Evento',r.tipo],
+    ['Criticidad',r.criticidad],['Impacto',(r.impacto||[]).join(', ')],
+    ['Resumen',r.resumen],['Descripción',r.descripcion],
+    [TIPOS_HALLAZGO.includes(r.tipo)?'¿Cómo se encontró?':'¿Cómo ocurrió?',r.como],
+    ['Involucrados',r.involucrados],['Daños',r.danos],
+    ['Acciones Inmediatas',(r.accInm||[]).join(', ')],
+    ['Estado',r.estado],['Observaciones',r.obs]];
+  rows.forEach(([l,v]) => { if (y<265) y=field(l,v); });
+  const pgs=doc.getNumberOfPages();
+  for(let i=1;i<=pgs;i++){
+    doc.setPage(i); doc.setFillColor(13,27,42); doc.rect(0,283,210,14,'F');
+    doc.setTextColor(201,162,39); doc.setFontSize(6.5);
+    doc.text('Edward Quezada M. | Seguridad Patrimonial | linkedin.com/in/edwardqm',10,290);
+    doc.text(`${i}/${pgs}`,200,290,{align:'right'});
+  }
+  doc.save(`${r.codigo}.pdf`);
+  toast('PDF individual generado');
+}
+
+// ── EXPORT EXCEL ──────────────────────────────────────────────
+function expExcel() {
+  const list = getFiltered();
+  const heads = ['CÓDIGO','FECHA','HORA','EMPRESA','UNIDAD','ÁREA','TIPO','CRITICIDAD','ESTADO',
+    'REPORTADO POR','CARGO','TELÉFONO','RESUMEN','IMPACTO','ACC. INMEDIATAS','BASC','VEHÍCULO','PLACA','GPS LAT','GPS LNG'];
+  const rows = list.map(r => [
+    r.codigo,r.fecha,r.hora,r.empresa,r.unidad,r.area,r.tipo,r.criticidad,r.estado,
+    r.reporta,r.cargo,r.telefono,r.resumen,(r.impacto||[]).join('; '),
+    (r.accInm||[]).join('; '),r.basc,r.vtipo,r.placa,r.gps?.lat||'',r.gps?.lng||''
+  ]);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([heads,...rows]);
+  ws['!cols'] = [12,10,8,22,15,15,20,10,14,22,16,12,40,28,28,6,10,10,12,12].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, 'RIS Reportes');
+  const sum = [['RESUMEN ESTADÍSTICO'],[''],[' Tipo','Cantidad'],...Object.entries(buildCount(list.map(r=>r.tipo))),['',''],['TOTAL',list.length]];
+  const ws2 = XLSX.utils.aoa_to_sheet(sum);
+  ws2['!cols']=[{wch:26},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
+  XLSX.writeFile(wb, `RIS_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Excel generado');
+}
+
+function getFiltered() {
+  const txt  = (document.getElementById('fs-txt')?.value||'').toLowerCase();
+  const tipo = document.getElementById('fs-tipo')?.value||'';
+  const crit = document.getElementById('fs-crit')?.value||'';
+  const est  = document.getElementById('fs-est')?.value||'';
+  return [...reportes].reverse().filter(r =>
+    (!txt  || r.codigo.toLowerCase().includes(txt)||r.tipo.toLowerCase().includes(txt)||r.empresa.toLowerCase().includes(txt)) &&
+    (!tipo || r.tipo===tipo) &&
+    (!crit || r.criticidad===crit) &&
+    (!est  || r.estado===est)
+  );
+}
+
+// ── SHARE ─────────────────────────────────────────────────────
+function whatsapp() {
+  const total = reportes.length;
+  const crit  = reportes.filter(r=>r.criticidad==='CRITICO').length;
+  const last  = reportes[reportes.length-1];
+  const msg = encodeURIComponent(
+    `📋 *RIS — REPORTE DE INCIDENTES DE SEGURIDAD PATRIMONIAL*\n\n`+
+    `📊 Resumen del sistema:\n`+
+    `• Total reportes: ${total}\n`+
+    `• Críticos: ${crit}\n`+
+    (last?`• Último: ${last.codigo} — ${last.tipo} (${last.empresa})\n`:'')+
+    `\n📅 Generado: ${new Date().toLocaleString('es-PE')}\n`+
+    `👤 Edward Quezada M. | Seguridad Patrimonial\n`+
+    `🔗 linkedin.com/in/edwardqm`
+  );
+  window.open(`https://wa.me/?text=${msg}`,'_blank');
+}
+function shareEmail() {
+  const total = reportes.length;
+  const sub = encodeURIComponent(`RIS — Reporte de Incidentes de Seguridad Patrimonial (${total} registros)`);
+  const body = encodeURIComponent(
+    `RIS — Reporte de Incidentes de Seguridad Patrimonial\n\n`+
+    `Total registros: ${total}\n`+
+    `Críticos: ${reportes.filter(r=>r.criticidad==='CRITICO').length}\n`+
+    `Cerrados: ${reportes.filter(r=>r.estado==='CERRADO').length}\n\n`+
+    `Generado: ${new Date().toLocaleString('es-PE')}\n`+
+    `Sistema RIS v2.0 — Edward Quezada M. | linkedin.com/in/edwardqm`
+  );
+  window.location.href=`mailto:?subject=${sub}&body=${body}`;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('on'), 3000);
+}
+
+</script>
+</body>
+</html>
