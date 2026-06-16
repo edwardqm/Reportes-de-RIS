@@ -201,12 +201,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div class="md:col-span-2 lg:col-span-3">
                                 <label class="block text-xs font-bold text-gray-600 mb-1">EMPRESA <span class="text-red-500">*</span></label>
-                                <input type="text" id="empresa" required autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary focus:border-transparent outline-none uppercase" placeholder="NOMBRE DE LA EMPRESA">
+                                <input type="text" id="empresa" required autocapitalize="characters" list="datalistEmpresas" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary focus:border-transparent outline-none uppercase" placeholder="NOMBRE DE LA EMPRESA">
+                                <datalist id="datalistEmpresas"></datalist>
                             </div>
-                            <div><label class="block text-xs font-bold text-gray-600 mb-1">UNIDAD / DIVISION</label><input type="text" id="unidad" autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="UNIDAD OPERATIVA"></div>
-                            <div><label class="block text-xs font-bold text-gray-600 mb-1">PLANTA / PROYECTO</label><input type="text" id="planta" autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="PLANTA O PROYECTO"></div>
-                            <div><label class="block text-xs font-bold text-gray-600 mb-1">SEDE / CAMPO</label><input type="text" id="sede" autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="SEDE O CAMPO"></div>
-                            <div><label class="block text-xs font-bold text-gray-600 mb-1">AREA / DEPARTAMENTO</label><input type="text" id="area" autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="AREA"></div>
+                            <div><label class="block text-xs font-bold text-gray-600 mb-1">UNIDAD / DIVISION</label><input type="text" id="unidad" autocapitalize="characters" list="datalistUnidades" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="UNIDAD OPERATIVA"><datalist id="datalistUnidades"></datalist></div>
+                            <div><label class="block text-xs font-bold text-gray-600 mb-1">PLANTA / PROYECTO</label><input type="text" id="planta" autocapitalize="characters" list="datalistPlantas" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="PLANTA O PROYECTO"><datalist id="datalistPlantas"></datalist></div>
+                            <div><label class="block text-xs font-bold text-gray-600 mb-1">SEDE / CAMPO</label><input type="text" id="sede" autocapitalize="characters" list="datalistSedes" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="SEDE O CAMPO"><datalist id="datalistSedes"></datalist></div>
+                            <div><label class="block text-xs font-bold text-gray-600 mb-1">AREA / DEPARTAMENTO</label><input type="text" id="area" autocapitalize="characters" list="datalistAreas" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase" placeholder="AREA"><datalist id="datalistAreas"></datalist></div>
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-gray-600 mb-1">UBICACION EXACTA</label>
                                 <div class="flex gap-2">
@@ -817,7 +818,7 @@
             <p class="text-xs opacity-80">RIS - REPORTE DE INCIDENTES DE SEGURIDAD PATRIMONIAL</p>
             <p class="text-xs opacity-60 mt-1">DESARROLLADO POR EDWARD QUEZADA M. | SEGURIDAD PATRIMONIAL</p>
             <a href="https://www.linkedin.com/in/edwardqm" target="_blank" class="text-xs text-ris-accent hover:text-white transition mt-1 inline-block"><i class="fab fa-linkedin"></i> WWW.LINKEDIN.COM/IN/EDWARDQM</a>
-            <p class="text-xs opacity-40 mt-2">VERSION 1.4.0 | 2026</p>
+            <p class="text-xs opacity-40 mt-2">VERSION 1.5.0 | 2026</p>
         </div>
     </footer>
 
@@ -1098,6 +1099,25 @@
             filterTipo.innerHTML = '<option value="">TODOS LOS TIPOS</option>' +
                 catalog.tiposEvento.map(t => `<option value="${t.nombre}">${t.nombre}</option>`).join('');
         }
+        updateDatalists();
+    }
+
+    function updateDatalists() {
+        // Empresas
+        const dlEmp = document.getElementById('datalistEmpresas');
+        if (dlEmp) dlEmp.innerHTML = (catalog.empresas || []).map(e => `<option value="${e}">`).join('');
+        // Unidades
+        const dlUni = document.getElementById('datalistUnidades');
+        if (dlUni) dlUni.innerHTML = (catalog.unidades || []).map(u => `<option value="${u}">`).join('');
+        // Plantas (usar unidades como plantas también, o catálogo separado si existe)
+        const dlPlan = document.getElementById('datalistPlantas');
+        if (dlPlan) dlPlan.innerHTML = (catalog.unidades || []).map(u => `<option value="${u}">`).join('');
+        // Sedes (usar unidades como sedes también)
+        const dlSed = document.getElementById('datalistSedes');
+        if (dlSed) dlSed.innerHTML = (catalog.unidades || []).map(u => `<option value="${u}">`).join('');
+        // Areas (usar cargos como áreas también, o catálogo separado)
+        const dlArea = document.getElementById('datalistAreas');
+        if (dlArea) dlArea.innerHTML = (catalog.cargos || []).map(c => `<option value="${c}">`).join('');
     }
 
     function onTipoEventoChange() {
@@ -1348,35 +1368,167 @@
 
     // ==================== LOCATION / MAP ====================
     function getLocation() {
-        if (!navigator.geolocation) {
-            showToast('Geolocalización no soportada', 'error');
+        // Intentar GPS nativo primero
+        if (navigator.geolocation) {
+            showLoading(true);
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    showLoading(false);
+                    setMapLocation(pos.coords.latitude, pos.coords.longitude, 'GPS');
+                },
+                err => {
+                    showLoading(false);
+                    // Si falla por seguridad, permisos o timeout → fallback IP
+                    if (err.code === 1 || err.code === 2 || err.message.includes('secure origins') || err.message.includes('Only secure origins')) {
+                        showToast('GPS no disponible en este contexto. Intentando ubicación por red...', 'warning');
+                        fallbackIpLocation();
+                    } else {
+                        showToast('No se pudo obtener ubicación. Use el modo manual.', 'warning');
+                        showManualLocationInput();
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+            );
+        } else {
+            showToast('Geolocalización no soportada. Intentando por red...', 'warning');
+            fallbackIpLocation();
+        }
+    }
+
+    function setMapLocation(lat, lng, source) {
+        document.getElementById('coordsDisplay').textContent = `LAT: ${lat.toFixed(6)} | LNG: ${lng.toFixed(6)} ${source ? '(' + source + ')' : ''}`;
+        document.getElementById('mapContainer').classList.remove('hidden');
+        if (!map) {
+            map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        } else {
+            map.setView([lat, lng], 15);
+        }
+        if (mapMarker) map.removeLayer(mapMarker);
+        mapMarker = L.marker([lat, lng]).addTo(map);
+        showToast('Ubicación obtenida ' + (source ? 'vía ' + source : ''), 'success');
+    }
+
+    function fallbackIpLocation() {
+        showLoading(true);
+        // Usar ipapi.co (gratis, no requiere API key para uso básico, CORS habilitado)
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://ipapi.co/json/', true);
+        xhr.timeout = 6000;
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                showLoading(false);
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.latitude && data.longitude) {
+                            setMapLocation(data.latitude, data.longitude, 'RED/IP');
+                            // También autocompletar ciudad/región si está vacío
+                            const ubi = document.getElementById('ubicacion');
+                            if (ubi && !ubi.value && data.city) {
+                                ubi.value = (data.city + ', ' + (data.region || '') + ', ' + (data.country_name || '')).toUpperCase().replace(/,\s*,/g, ',').replace(/,\s*$/, '');
+                            }
+                        } else {
+                            showToast('Ubicación por red no disponible. Use modo manual.', 'warning');
+                            showManualLocationInput();
+                        }
+                    } catch (e) {
+                        showToast('Error al procesar ubicación por red. Use modo manual.', 'warning');
+                        showManualLocationInput();
+                    }
+                } else {
+                    // Fallback secundario: ipinfo.io
+                    fallbackIpInfo();
+                }
+            }
+        };
+        xhr.onerror = function() {
+            showLoading(false);
+            fallbackIpInfo();
+        };
+        xhr.ontimeout = function() {
+            showLoading(false);
+            fallbackIpInfo();
+        };
+        xhr.send();
+    }
+
+    function fallbackIpInfo() {
+        showLoading(true);
+        const xhr2 = new XMLHttpRequest();
+        xhr2.open('GET', 'https://ipinfo.io/json', true);
+        xhr2.timeout = 6000;
+        xhr2.onreadystatechange = function() {
+            if (xhr2.readyState === 4) {
+                showLoading(false);
+                if (xhr2.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr2.responseText);
+                        if (data.loc) {
+                            const [lat, lng] = data.loc.split(',').map(Number);
+                            setMapLocation(lat, lng, 'RED/IP');
+                            const ubi = document.getElementById('ubicacion');
+                            if (ubi && !ubi.value && data.city) {
+                                ubi.value = (data.city + ', ' + (data.region || '') + ', ' + (data.country || '')).toUpperCase().replace(/,\s*,/g, ',').replace(/,\s*$/, '');
+                            }
+                        } else {
+                            showManualLocationInput();
+                        }
+                    } catch (e) {
+                        showManualLocationInput();
+                    }
+                } else {
+                    showManualLocationInput();
+                }
+            }
+        };
+        xhr2.onerror = function() {
+            showLoading(false);
+            showManualLocationInput();
+        };
+        xhr2.ontimeout = function() {
+            showLoading(false);
+            showManualLocationInput();
+        };
+        xhr2.send();
+    }
+
+    function showManualLocationInput() {
+        showToast('Ingrese coordenadas manualmente o escriba la ubicación', 'info');
+        // Mostrar inputs manuales debajo del mapa si no existen
+        let manualDiv = document.getElementById('manualLocationDiv');
+        if (!manualDiv) {
+            manualDiv = document.createElement('div');
+            manualDiv.id = 'manualLocationDiv';
+            manualDiv.className = 'mt-2 grid grid-cols-2 gap-2';
+            manualDiv.innerHTML = `
+                <input type="text" id="manualLat" inputmode="decimal" placeholder="LATITUD" class="px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono uppercase" oninput="this.value=this.value.replace(/[^0-9.\-]/g,'')">
+                <input type="text" id="manualLng" inputmode="decimal" placeholder="LONGITUD" class="px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono uppercase" oninput="this.value=this.value.replace(/[^0-9.\-]/g,'')">
+                <button type="button" onclick="app.setManualLocation()" class="col-span-2 px-3 py-2 bg-ris-primary text-white rounded-lg text-xs font-bold hover:bg-ris-secondary transition"><i class="fas fa-map-pin mr-1"></i> USAR COORDENADAS MANUALES</button>
+            `;
+            const mapContainer = document.getElementById('mapContainer');
+            if (mapContainer) mapContainer.parentNode.insertBefore(manualDiv, mapContainer.nextSibling);
+        }
+        manualDiv.classList.remove('hidden');
+        document.getElementById('mapContainer')?.classList.remove('hidden');
+    }
+
+    function setManualLocation() {
+        const lat = parseFloat(document.getElementById('manualLat')?.value);
+        const lng = parseFloat(document.getElementById('manualLng')?.value);
+        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            showToast('Coordenadas inválidas. Lat: -90 a 90, Lng: -180 a 180', 'error');
             return;
         }
-        showLoading(true);
-        navigator.geolocation.getCurrentPosition(pos => {
-            showLoading(false);
-            const { latitude, longitude } = pos.coords;
-            document.getElementById('coordsDisplay').textContent = `LAT: ${latitude.toFixed(6)} | LNG: ${longitude.toFixed(6)}`;
-            document.getElementById('mapContainer').classList.remove('hidden');
-
-            if (!map) {
-                map = L.map('map').setView([latitude, longitude], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-            } else {
-                map.setView([latitude, longitude], 15);
-            }
-            if (mapMarker) map.removeLayer(mapMarker);
-            mapMarker = L.marker([latitude, longitude]).addTo(map);
-        }, err => {
-            showLoading(false);
-            showToast('Error al obtener ubicación: ' + err.message, 'error');
-        });
+        setMapLocation(lat, lng, 'MANUAL');
     }
 
     function clearLocation() {
-        document.getElementById('mapContainer').classList.add('hidden');
+        document.getElementById('mapContainer')?.classList.add('hidden');
         document.getElementById('coordsDisplay').textContent = 'LAT: -- | LNG: --';
         if (mapMarker) { map.removeLayer(mapMarker); mapMarker = null; }
+        const manualDiv = document.getElementById('manualLocationDiv');
+        if (manualDiv) manualDiv.classList.add('hidden');
     }
 
     // ==================== SIGNATURE ====================
@@ -2292,6 +2444,7 @@
         render('listUnidades', catalog.unidades);
         render('listTiposEvento', catalog.tiposEvento, true);
         render('listCargos', catalog.cargos);
+        updateDatalists();
     }
 
     function deleteCatalogItem(listId, idx) {
@@ -2441,10 +2594,10 @@
 
     // ==================== EXPOSE APP ====================
     window.app = {
-        navigate, toggleAccordion, initClock,
+        navigate, toggleAccordion, initClock, updateDatalists,
         onTipoEventoChange, updateCriticidadStyle,
         buscarReportantePorDNI, limpiarReportante,
-        getLocation, clearLocation,
+        getLocation, clearLocation, setManualLocation, setMapLocation, fallbackIpLocation, showManualLocationInput,
         formatLicencia, formatPlaca,
         saveReport, resetForm, previewReport,
         openCamera, openGallery, openScanner, openAudioRecorder,
