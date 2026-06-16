@@ -313,6 +313,25 @@
                     </button>
                     <div id="descripcion" class="accordion-content active p-4">
 
+                        <!-- FECHA Y HORA DEL HALLAZGO / INCIDENTE / ACCIDENTE -->
+                        <div class="mb-5 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-calendar-day text-ris-primary"></i>
+                                <h4 class="text-xs font-bold text-ris-primary uppercase tracking-wider">Fecha y Hora del Hallazgo / Ocurrencia / Incidente</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">FECHA DEL EVENTO <span class="text-red-500">*</span></label>
+                                    <input type="date" id="fechaHallazgo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase font-mono text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">HORA DEL EVENTO <span class="text-red-500">*</span></label>
+                                    <input type="time" id="horaHallazgo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase font-mono text-sm">
+                                </div>
+                            </div>
+                            <p class="text-xs text-blue-600 mt-2"><i class="fas fa-info-circle mr-1"></i> Ingrese la fecha y hora exacta en que ocurrió el hallazgo, incidente o accidente. La fecha/hora del RIS se genera automáticamente.</p>
+                        </div>
+
                         <!-- 3.1 Descripcion Detallada -->
                         <div class="mb-5">
                             <label class="block text-xs font-bold text-gray-600 mb-1">DESCRIPCION DETALLADA <span class="text-red-500">*</span></label>
@@ -1764,6 +1783,8 @@
             tipoEvento: document.getElementById('tipoEvento')?.value || '',
             nivelCriticidad: document.getElementById('nivelCriticidad')?.value || '',
             impacto: getCheckboxValues('impacto'),
+            fechaHallazgo: document.getElementById('fechaHallazgo')?.value || '',
+            horaHallazgo: document.getElementById('horaHallazgo')?.value || '',
             descripcionDetallada: document.getElementById('descripcionDetallada')?.value || '',
             vulnerabilidad: getCheckboxValues('vulnerabilidad'),
             vulnerabilidadOtras: document.getElementById('vulnerabilidadOtras')?.value || '',
@@ -1914,6 +1935,8 @@
         document.getElementById('correo').value = report.correo || '';
         document.getElementById('tipoEvento').value = report.tipoEvento || '';
         document.getElementById('nivelCriticidad').value = report.nivelCriticidad || '';
+        document.getElementById('fechaHallazgo').value = report.fechaHallazgo || '';
+        document.getElementById('horaHallazgo').value = report.horaHallazgo || '';
         document.getElementById('descripcionDetallada').value = report.descripcionDetallada || '';
         document.getElementById('vulnerabilidadOtras').value = report.vulnerabilidadOtras || '';
         document.getElementById('riesgoOtros').value = report.riesgoOtros || '';
@@ -2276,6 +2299,7 @@
                     <span class="text-xs text-gray-400">${r.fecha} ${r.hora}</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs mb-2">
+                    <div><span class="text-gray-500 font-semibold">Fecha evento:</span> <span class="text-gray-800">${r.fechaHallazgo || '-'} ${r.horaHallazgo || ''}</span></div>
                     <div><span class="text-gray-500 font-semibold">Tipo:</span> <span class="text-gray-800">${r.tipoEvento}</span></div>
                     <div><span class="text-gray-500 font-semibold">Empresa:</span> <span class="text-gray-800">${r.empresa}</span></div>
                     <div><span class="text-gray-500 font-semibold">Reportado por:</span> <span class="text-gray-800">${r.reportadoPor}</span></div>
