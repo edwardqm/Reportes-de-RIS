@@ -937,39 +937,95 @@
         empresas: [],
         unidades: [],
         tiposEvento: [
-            { nombre: "ACTO SUBESTANDAR", criticidad: "BAJO" },
-            { nombre: "CONDICION SUBESTANDAR", criticidad: "BAJO" },
-            { nombre: "ACTO INSEGURO", criticidad: "MEDIO" },
-            { nombre: "CONDICION INSEGURA", criticidad: "MEDIO" },
-            { nombre: "ROBO / HURTO", criticidad: "ALTO" },
-            { nombre: "ROBO / HURTO CON VIOLENCIA", criticidad: "CRITICO" },
-            { nombre: "ACCESO NO AUTORIZADO", criticidad: "ALTO" },
-            { nombre: "INTRUSION", criticidad: "ALTO" },
+            // === SEGURIDAD PATRIMONIAL - CRITICO ===
+            { nombre: "ROBO CON VIOLENCIA / ASALTO", criticidad: "CRITICO" },
             { nombre: "SABOTAJE", criticidad: "CRITICO" },
-            { nombre: "AMENAZA / AGRESION", criticidad: "ALTO" },
+            { nombre: "AMENAZA AL PERSONAL DE SEGURIDAD", criticidad: "CRITICO" },
+            { nombre: "SOBORNO / COHECHO", criticidad: "CRITICO" },
+            { nombre: "CHANTAJE / EXTORSION", criticidad: "CRITICO" },
+            { nombre: "CIBERATAQUE / INTRUSION INFORMATICA", criticidad: "CRITICO" },
             { nombre: "INCENDIO", criticidad: "CRITICO" },
-            { nombre: "ACCIDENTE VIAL", criticidad: "ALTO" },
-            { nombre: "ACCIDENTE VIAL CON LESIONES", criticidad: "CRITICO" },
-            { nombre: "DANO A INSTALACIONES", criticidad: "MEDIO" },
-            { nombre: "DANO A INSTALACIONES MAYOR", criticidad: "ALTO" },
-            { nombre: "PERDIDA DE ACTIVOS", criticidad: "MEDIO" },
-            { nombre: "PERDIDA DE ACTIVOS SIGNIFICATIVA", criticidad: "ALTO" },
-            { nombre: "FALLA DE EQUIPOS DE SEGURIDAD", criticidad: "MEDIO" },
-            { nombre: "FALLA DE CCTV / ALARMAS", criticidad: "MEDIO" },
+            { nombre: "EXPLOSION / DEFLAGRACION", criticidad: "CRITICO" },
+            { nombre: "HALLAZGO DE DISPOSITIVO EXPLOSIVO", criticidad: "CRITICO" },
+            { nombre: "PORTE DE ARMAS BLANCAS / DE FUEGO", criticidad: "CRITICO" },
             { nombre: "CONTAMINACION ALIMENTARIA", criticidad: "CRITICO" },
             { nombre: "ADULTERACION DE PRODUCTO", criticidad: "CRITICO" },
-            { nombre: "MANIPULACION INDEBIDA", criticidad: "MEDIO" },
-            { nombre: "DERRAME / FUGA", criticidad: "MEDIO" },
-            { nombre: "DERRAME / FUGA MAYOR", criticidad: "ALTO" },
-            { nombre: "EMERGENCIA MEDICA", criticidad: "ALTO" },
-            { nombre: "FATALIDAD / MUERTE", criticidad: "CRITICO" },
-            { nombre: "CONFLICTO SOCIAL", criticidad: "ALTO" },
-            { nombre: "FATIGA DEL PERSONAL", criticidad: "BAJO" },
-            { nombre: "INFRACCION DE PROCEDIMIENTO", criticidad: "MEDIO" },
-            { nombre: "FRAUDE / CORRUPCION", criticidad: "CRITICO" },
-            { nombre: "CIBERATAQUE / INTRUSION TECNOLOGICA", criticidad: "CRITICO" },
+            { nombre: "SABOTAJE ALIMENTARIO", criticidad: "CRITICO" },
+            { nombre: "TAMPERING / ALTERACION DE SELLOS", criticidad: "CRITICO" },
             { nombre: "DESASTRE NATURAL", criticidad: "CRITICO" },
+            { nombre: "ACCIDENTE CON FATALIDAD / MUERTE", criticidad: "CRITICO" },
+            { nombre: "ACCIDENTE VIAL CON FATALIDAD", criticidad: "CRITICO" },
+            { nombre: "FUGA DE REOS / INTERNOS", criticidad: "CRITICO" },
+            { nombre: "PERDIDA / ROBO DE ARMAMENTO", criticidad: "CRITICO" },
+            { nombre: "SUSPICION DE TERRORISMO / ACTIVIDAD SUBVERSIVA", criticidad: "CRITICO" },
+            { nombre: "CORRUPCION / SOBORNO (GENERAL)", criticidad: "CRITICO" },
+            { nombre: "FRAUDE MAYOR / ESTAFA GRAVES", criticidad: "CRITICO" },
+            { nombre: "ASFIXIA POR ESPACIOS CONFINADOS", criticidad: "CRITICO" },
+            { nombre: "EMERGENCIA AMBIENTAL", criticidad: "CRITICO" },
+            { nombre: "CONTAMINACION AMBIENTAL", criticidad: "CRITICO" },
+            // === SEGURIDAD PATRIMONIAL - ALTO ===
+            { nombre: "ROBO / HURTO", criticidad: "ALTO" },
+            { nombre: "ACCESO NO AUTORIZADO", criticidad: "ALTO" },
+            { nombre: "INTRUSION / INGRESO INDEBIDO", criticidad: "ALTO" },
+            { nombre: "AMENAZA / AGRESION FISICA", criticidad: "ALTO" },
+            { nombre: "AMENAZA / AGRESION AL PERSONAL", criticidad: "ALTO" },
+            { nombre: "FRAUDE / ESTAFA", criticidad: "ALTO" },
+            { nombre: "DANO MAYOR A INFRAESTRUCTURA", criticidad: "ALTO" },
             { nombre: "EVACUACION", criticidad: "ALTO" },
+            { nombre: "CONFLICTO SOCIAL / VANDALISMO", criticidad: "ALTO" },
+            { nombre: "DETECCION DE SUSTANCIAS ILICITAS", criticidad: "ALTO" },
+            { nombre: "ROBO INTERNO / CONCUSION", criticidad: "ALTO" },
+            { nombre: "INGRESO DE PERSONAL EBRIO / DROGADO", criticidad: "ALTO" },
+            { nombre: "PERDIDA DE DOCUMENTOS SENSIBLES", criticidad: "ALTO" },
+            { nombre: "BRECHA EN SEGURIDAD DE CONTENEDORES", criticidad: "ALTO" },
+            { nombre: "VULNERABILIDAD EN CADENA DE SUMINISTRO", criticidad: "ALTO" },
+            { nombre: "EMERGENCIA MEDICA", criticidad: "ALTO" },
+            { nombre: "DERRAME / FUGA MAYOR", criticidad: "ALTO" },
+            { nombre: "EXPOSICION A AGENTE QUIMICO", criticidad: "ALTO" },
+            { nombre: "QUEMADURA / ELECTROCUCION", criticidad: "ALTO" },
+            { nombre: "INTOXICACION / ASFIXIA", criticidad: "ALTO" },
+            { nombre: "CAIDA DE ALTURA", criticidad: "ALTO" },
+            { nombre: "ACCIDENTE GRAVE", criticidad: "ALTO" },
+            { nombre: "ACCIDENTE VIAL GRAVE", criticidad: "ALTO" },
+            { nombre: "RIESGO MICROBIOLOGICO", criticidad: "ALTO" },
+            { nombre: "RIESGO QUIMICO ALIMENTARIO", criticidad: "ALTO" },
+            { nombre: "FALTA DE CONTROLES BASC", criticidad: "ALTO" },
+            { nombre: "ACCESO NO AUTORIZADO A AREAS RESTRINGIDAS", criticidad: "ALTO" },
+            { nombre: "FALTA DE PROTOCOLOS DE EMERGENCIA", criticidad: "ALTO" },
+            { nombre: "MANEJO DE RESIDUOS PELIGROSOS", criticidad: "ALTO" },
+            { nombre: "DERRAME DE HIDROCARBUROS", criticidad: "ALTO" },
+            { nombre: "EXPOSICION A RADIACIONES", criticidad: "ALTO" },
+            { nombre: "QUEMADURA QUIMICA", criticidad: "ALTO" },
+            { nombre: "ACCIDENTE CON ANIMALES VENENOSOS", criticidad: "ALTO" },
+            { nombre: "CONDUCCION EN ESTADO DE EBRIEDAD", criticidad: "ALTO" },
+            // === SEGURIDAD PATRIMONIAL - MEDIO ===
+            { nombre: "ALTERACION DE ORDEN PUBLICO", criticidad: "MEDIO" },
+            { nombre: "DANO A INSTALACIONES", criticidad: "MEDIO" },
+            { nombre: "FALLA DE SISTEMAS DE SEGURIDAD", criticidad: "MEDIO" },
+            { nombre: "FALLA DE CCTV / ALARMAS", criticidad: "MEDIO" },
+            { nombre: "ACTO INSEGURO", criticidad: "MEDIO" },
+            { nombre: "CONDICION INSEGURA", criticidad: "MEDIO" },
+            { nombre: "ACCIDENTE LEVE", criticidad: "MEDIO" },
+            { nombre: "DERRAME / FUGA MENOR", criticidad: "MEDIO" },
+            { nombre: "CAIDA DE PERSONAS", criticidad: "MEDIO" },
+            { nombre: "CAIDA DE OBJETOS", criticidad: "MEDIO" },
+            { nombre: "GOLPE / CORTE / ATRAPAMIENTO", criticidad: "MEDIO" },
+            { nombre: "HOSTIGAMIENTO / ACOSO LABORAL", criticidad: "MEDIO" },
+            { nombre: "MANIPULACION INDEBIDA", criticidad: "MEDIO" },
+            { nombre: "RIESGO FISICO ALIMENTARIO", criticidad: "MEDIO" },
+            { nombre: "INCUMPLIMIENTO DE PROCEDIMIENTO", criticidad: "MEDIO" },
+            { nombre: "EXCESO DE VELOCIDAD", criticidad: "MEDIO" },
+            { nombre: "FATIGA DEL CONDUCTOR", criticidad: "MEDIO" },
+            { nombre: "FALLA MECANICA VEHICULAR", criticidad: "MEDIO" },
+            { nombre: "CONDICIONES AMBIENTALES ADVERSAS", criticidad: "MEDIO" },
+            // === SEGURIDAD PATRIMONIAL - BAJO ===
+            { nombre: "PATRULLAJE DE SEGURIDAD", criticidad: "BAJO" },
+            { nombre: "INSPECCION DE VEHICULOS", criticidad: "BAJO" },
+            { nombre: "CONTROL DE MERCADERIA", criticidad: "BAJO" },
+            { nombre: "ACTO SUBESTANDAR", criticidad: "BAJO" },
+            { nombre: "CONDICION SUBESTANDAR", criticidad: "BAJO" },
+            { nombre: "FATIGA DEL PERSONAL", criticidad: "BAJO" },
+            { nombre: "EXPOSICION A RUIDO / VIBRACIONES", criticidad: "BAJO" },
             { nombre: "OTROS", criticidad: "BAJO" }
         ],
         cargos: [
@@ -1015,13 +1071,15 @@
             const savedCatalog = localStorage.getItem(STORAGE_KEYS.catalog);
             if (savedCatalog) {
                 catalog = JSON.parse(savedCatalog);
-                // Asegurar que tiposEvento tenga datos si el usuario borró todo
-                if (!catalog.tiposEvento || catalog.tiposEvento.length === 0) {
-                    catalog.tiposEvento = JSON.parse(JSON.stringify(DEFAULT_CATALOG.tiposEvento));
-                }
+                // REINICIO FORZADO: Siempre recargar tiposEvento desde DEFAULT para garantizar catálogo actualizado
+                catalog.tiposEvento = JSON.parse(JSON.stringify(DEFAULT_CATALOG.tiposEvento));
+                // Asegurar que cargos tenga datos si el usuario borró todo
                 if (!catalog.cargos || catalog.cargos.length === 0) {
                     catalog.cargos = JSON.parse(JSON.stringify(DEFAULT_CATALOG.cargos));
                 }
+                // Asegurar que empresas y unidades existan como arrays
+                if (!catalog.empresas) catalog.empresas = [];
+                if (!catalog.unidades) catalog.unidades = [];
             } else {
                 catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
             }
@@ -1652,6 +1710,15 @@
             kilometraje: document.getElementById('kilometraje')?.value || '',
             vialFactor: getCheckboxValues('vialFactor'),
             evidencias: evidenceFiles,
+            firma: (() => {
+                const canvas = document.getElementById('signaturePad');
+                if (canvas) {
+                    const blank = document.createElement('canvas');
+                    blank.width = canvas.width; blank.height = canvas.height;
+                    if (canvas.toDataURL() !== blank.toDataURL()) return canvas.toDataURL('image/png');
+                }
+                return '';
+            })(),
             status: 'ABIERTO',
             createdAt: new Date().toISOString()
         };
@@ -1990,6 +2057,19 @@
 
         evidenceFiles = report.evidencias || [];
         renderEvidencePreview();
+        // Restaurar firma
+        if (report.firma) {
+            const canvas = document.getElementById('signaturePad');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                img.src = report.firma;
+            }
+        } else {
+            clearSignature();
+        }
         updateCriticidadStyle();
         showToast('Editando reporte ' + report.codigo, 'info');
     }
@@ -2650,7 +2730,7 @@
         navigate, toggleAccordion, initClock, updateDatalists,
         onTipoEventoChange, updateCriticidadStyle,
         buscarReportantePorDNI, limpiarReportante,
-        getCoordsAndOpenOSM, openOSMExternal,
+        
         formatLicencia, formatPlaca,
         previewReport, openPreviewModal, closePreviewModal, printPreview,
         saveReport, resetForm, previewReport,
