@@ -185,6 +185,7 @@
                 <button onclick="app.navigate('dashboard')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="dashboard"><i class="fas fa-chart-pie mr-1"></i> DASHBOARD</button>
                 <button onclick="app.openAdminLogin()" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="admin"><i class="fas fa-cog mr-1"></i> PANEL CONTROL</button>
                 <button onclick="app.navigate('reports')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="reports"><i class="fas fa-file-export mr-1"></i> EXPORTAR</button>
+                <button onclick="app.navigate('informe')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="informe"><i class="fas fa-file-alt mr-1"></i> INFORME</button>
             </div>
         </div>
     </nav>
@@ -831,7 +832,44 @@
                 </div>
             </div>
         </section>
-    </main>
+    
+        <!-- SECCION INFORME IA -->
+        <section id="section-informe" class="hidden animate-slide-in">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-ris-primary to-ris-secondary rounded-lg flex items-center justify-center text-white">
+                            <i class="fas fa-brain text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-ris-primary">INFORME EJECUTIVO IA</h2>
+                            <p class="text-xs text-gray-500">ANALISIS GENERADO POR SENIOR EN SEGURIDAD PATRIMONIAL</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="app.regenerateInforme()" class="px-3 py-2 bg-ris-primary text-white rounded-lg text-xs font-bold hover:bg-ris-secondary transition">
+                            <i class="fas fa-sync-alt mr-1"></i> REGENERAR
+                        </button>
+                        <button onclick="app.copyInforme()" class="px-3 py-2 bg-ris-accent text-white rounded-lg text-xs font-bold hover:bg-yellow-600 transition">
+                            <i class="fas fa-copy mr-1"></i> COPIAR TEXTO
+                        </button>
+                        <button onclick="app.exportInformePDF()" class="px-3 py-2 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 transition">
+                            <i class="fas fa-file-pdf mr-1"></i> PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p class="text-xs text-blue-800"><i class="fas fa-info-circle mr-1"></i> Este informe analiza automáticamente todos los reportes RIS registrados, identifica patrones, vulnerabilidades críticas y propone un plan de acción basado en metodologías de seguridad patrimonial (BASC, ISO 28000, PDCA).</p>
+                </div>
+
+                <div id="informeContent" class="space-y-6">
+                    <!-- El contenido se genera dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+</main>
 
     <footer class="bg-ris-primary text-white py-4 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center">
@@ -1148,6 +1186,7 @@
         if (tabId === 'dashboard') renderDashboard();
         if (tabId === 'admin') renderAdmin();
         if (tabId === 'reports') initExportFilters();
+        if (tabId === 'informe') renderInforme();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -2747,8 +2786,257 @@
         shareWhatsApp, shareEmail, printReport, shareNative,
         toggleSync, showMenu,
         openDashboardDetail, closeDashboardDetail, renderDashboardDetailList,
+        renderInforme, regenerateInforme, copyInforme, exportInformePDF,
         pinBuffer: ''
     };
+
+
+    // ==================== INFORME IA ====================
+    function renderInforme() {
+        const container = document.getElementById('informeContent');
+        if (!container) return;
+        if (reports.length === 0) {
+            container.innerHTML = '<div class="text-center py-12"><i class="fas fa-robot text-4xl text-gray-300 mb-3"></i><p class="text-gray-500">No hay reportes registrados para generar el informe.</p></div>';
+            return;
+        }
+        container.innerHTML = generateAIReport();
+    }
+
+    function regenerateInforme() {
+        showToast('Regenerando informe con IA...', 'info');
+        setTimeout(() => renderInforme(), 600);
+    }
+
+    function copyInforme() {
+        const text = document.getElementById('informeText')?.innerText || '';
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => showToast('Informe copiado. Pégalo en Kimi, ChatGPT, Gemini o Claude para enriquecerlo.', 'success'))
+            .catch(() => showToast('Error al copiar', 'error'));
+    }
+
+    function exportInformePDF() {
+        showToast('Preparando PDF del informe...', 'info');
+        window.print();
+    }
+
+    function generateAIReport() {
+        // Análisis de datos
+        const total = reports.length;
+        const criticos = reports.filter(r => r.nivelCriticidad === 'CRITICO').length;
+        const altos = reports.filter(r => r.nivelCriticidad === 'ALTO').length;
+        const medios = reports.filter(r => r.nivelCriticidad === 'MEDIO').length;
+        const bajos = reports.filter(r => r.nivelCriticidad === 'BAJO').length;
+        const cerrados = reports.filter(r => r.status === 'CERRADO').length;
+        const abiertos = total - cerrados;
+
+        // Top empresas con incidentes
+        const empCounts = {};
+        reports.forEach(r => { empCounts[r.empresa] = (empCounts[r.empresa] || 0) + 1; });
+        const topEmpresas = Object.entries(empCounts).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+        // Top tipos de evento
+        const tipoCounts = {};
+        reports.forEach(r => { tipoCounts[r.tipoEvento] = (tipoCounts[r.tipoEvento] || 0) + 1; });
+        const topTipos = Object.entries(tipoCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+        // Vulnerabilidades más frecuentes
+        const vulnCounts = {};
+        reports.forEach(r => { (r.vulnerabilidad || []).forEach(v => { vulnCounts[v] = (vulnCounts[v] || 0) + 1; }); });
+        const topVulns = Object.entries(vulnCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+        // Riesgos más frecuentes
+        const riesgoCounts = {};
+        reports.forEach(r => { (r.riesgo || []).forEach(rsk => { riesgoCounts[rsk] = (riesgoCounts[rsk] || 0) + 1; }); });
+        const topRiesgos = Object.entries(riesgoCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+        // Impactos más frecuentes
+        const impactoCounts = {};
+        reports.forEach(r => { (r.impacto || []).forEach(i => { impactoCounts[i] = (impactoCounts[i] || 0) + 1; }); });
+        const topImpactos = Object.entries(impactoCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+        // Acciones correctivas más comunes
+        const accCorrCounts = {};
+        reports.forEach(r => { (r.accCorrectiva || []).forEach(a => { accCorrCounts[a] = (accCorrCounts[a] || 0) + 1; }); });
+        const topAccCorr = Object.entries(accCorrCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+        // BASC incumplimientos
+        const bascNo = reports.filter(r => r.cumpleBASC === 'NO').length;
+
+        // Seguridad alimentaria
+        const segAlimCount = reports.filter(r => (r.segAlim || []).length > 0).length;
+
+        // Análisis de tendencia (últimos 3 meses vs anteriores)
+        const now = new Date();
+        const tresMesesAtras = new Date(); tresMesesAtras.setMonth(now.getMonth() - 3);
+        const recientes = reports.filter(r => new Date(r.createdAt) >= tresMesesAtras).length;
+        const antiguos = total - recientes;
+        const tendencia = recientes > antiguos ? 'AL ALZA' : 'ESTABLE/BAJA';
+        const tendenciaColor = recientes > antiguos ? 'text-red-600' : 'text-green-600';
+
+        // Generar HTML del informe
+        const fmtList = (arr) => arr.map(([k,v]) => `<li class="mb-1"><span class="font-semibold text-gray-800">${k}</span> <span class="text-gray-500">(${v} caso${v>1?'s':''})</span></li>`).join('');
+
+        return `
+        <div id="informeText" class="space-y-6 text-sm text-gray-800">
+
+            <!-- 1. PROPOSITO -->
+            <div class="bg-gradient-to-r from-ris-primary to-ris-secondary rounded-xl p-5 text-white shadow-lg">
+                <h3 class="text-base font-bold mb-2"><i class="fas fa-bullseye mr-2"></i>1. PROPÓSITO DEL RIS</h3>
+                <p class="text-xs leading-relaxed opacity-95 text-justify">
+                    El Sistema de Reporte de Incidentes de Seguridad (RIS) constituye la herramienta central de inteligencia operativa para la gestión proactiva de riesgos patrimoniales. Su propósito es estandarizar la captura, clasificación y análisis de eventos de seguridad, vulnerabilidades y condiciones inseguras, permitiendo a la dirección identificar patrones, asignar recursos de mitigación de manera eficiente y demostrar debida diligencia ante auditorías BASC, ISO 28000 y organismos reguladores. 
+                </p>
+                <p class="text-xs leading-relaxed opacity-95 mt-2 text-justify">
+                    Actualmente, el sistema gestiona <strong>${total} reportes</strong>, de los cuales <strong>${criticos} son críticos</strong>, <strong>${altos} de alto riesgo</strong>, <strong>${medios} medios</strong> y <strong>${bajos} bajos</strong>. El <strong>${Math.round(cerrados/total*100)}%</strong> han sido cerrados, quedando <strong>${abiertos} casos abiertos</strong> que requieren seguimiento inmediato.
+                </p>
+            </div>
+
+            <!-- 2. OPORTUNIDADES DE MEJORA -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 class="text-base font-bold text-ris-primary mb-3"><i class="fas fa-search-plus mr-2"></i>2. OPORTUNIDADES DE MEJORA DETECTADAS</h3>
+                <p class="text-xs text-gray-600 mb-3">Basado en el análisis de patrones de los reportes registrados, se identifican las siguientes áreas de oportunidad:</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                        <h4 class="text-xs font-bold text-orange-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> VULNERABILIDADES RECURRENTES</h4>
+                        <ul class="text-xs text-gray-700 list-disc list-inside">
+                            ${topVulns.length ? fmtList(topVulns) : '<li class="text-gray-400">No se registraron vulnerabilidades estructuradas</li>'}
+                        </ul>
+                    </div>
+                    <div class="bg-red-50 rounded-lg p-3 border border-red-100">
+                        <h4 class="text-xs font-bold text-red-700 mb-2"><i class="fas fa-radiation mr-1"></i> RIESGOS DOMINANTES</h4>
+                        <ul class="text-xs text-gray-700 list-disc list-inside">
+                            ${topRiesgos.length ? fmtList(topRiesgos) : '<li class="text-gray-400">No se registraron riesgos estructurados</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                        <h4 class="text-xs font-bold text-blue-700 mb-2"><i class="fas fa-bullseye mr-1"></i> IMPACTO MÁS FRECUENTE</h4>
+                        <ul class="text-xs text-gray-700 list-disc list-inside">
+                            ${topImpactos.length ? fmtList(topImpactos) : '<li class="text-gray-400">No se registraron impactos</li>'}
+                        </ul>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                        <h4 class="text-xs font-bold text-purple-700 mb-2"><i class="fas fa-building mr-1"></i> UNIDADES CON MAYOR INCIDENCIA</h4>
+                        <ul class="text-xs text-gray-700 list-disc list-inside">
+                            ${topEmpresas.length ? fmtList(topEmpresas) : '<li class="text-gray-400">No hay datos suficientes</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <h4 class="text-xs font-bold text-gray-700 mb-2"><i class="fas fa-chart-line mr-1"></i> TIPOS DE EVENTO CON MAYOR RECURRENCIA</h4>
+                    <div class="flex flex-wrap gap-2">
+                        ${topTipos.map(([tipo, count]) => `<span class="px-2 py-1 bg-ris-primary text-white rounded text-[10px] font-semibold">${tipo}: ${count}</span>`).join('')}
+                    </div>
+                </div>
+
+                ${bascNo > 0 ? `<div class="mt-3 bg-yellow-50 rounded-lg p-3 border border-yellow-200"><h4 class="text-xs font-bold text-yellow-700"><i class="fas fa-certificate mr-1"></i> BASC</h4><p class="text-xs text-gray-700 mt-1">Se detectaron <strong>${bascNo} reportes</strong> con incumplimiento BASC. Esto representa un riesgo regulatorio y de cadena de suministro que debe ser atendido antes de la próxima auditoría.</p></div>` : ''}
+
+                ${segAlimCount > 0 ? `<div class="mt-3 bg-teal-50 rounded-lg p-3 border border-teal-200"><h4 class="text-xs font-bold text-teal-700"><i class="fas fa-apple-alt mr-1"></i> SEGURIDAD ALIMENTARIA</h4><p class="text-xs text-gray-700 mt-1"><strong>${segAlimCount} reportes</strong> involucran aspectos de seguridad alimentaria o defensa alimentaria. Se recomienda revisar los controles HACCP y VACCP asociados.</p></div>` : ''}
+            </div>
+
+            <!-- 3. POR QUE ACTUAR AHORA -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 class="text-base font-bold text-ris-primary mb-3"><i class="fas fa-clock mr-2"></i>3. ¿POR QUÉ ES IMPORTANTE ACTUAR AHORA?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <div class="text-center p-3 bg-red-50 rounded-lg border border-red-100">
+                        <div class="text-2xl font-black text-red-600">${criticos + altos}</div>
+                        <div class="text-[10px] font-bold text-gray-600 uppercase">Incidentes Críticos/Altos</div>
+                        <div class="text-[10px] text-gray-400">Requieren atención inmediata</div>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div class="text-2xl font-black ${tendenciaColor}">${recientes}</div>
+                        <div class="text-[10px] font-bold text-gray-600 uppercase">Reportes últimos 3 meses</div>
+                        <div class="text-[10px] text-gray-400">Tendencia: ${tendencia}</div>
+                    </div>
+                    <div class="text-center p-3 bg-orange-50 rounded-lg border border-orange-100">
+                        <div class="text-2xl font-black text-orange-600">${abiertos}</div>
+                        <div class="text-[10px] font-bold text-gray-600 uppercase">Casos Abiertos</div>
+                        <div class="text-[10px] text-gray-400">Sin cerrar o sin seguimiento</div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed text-justify">
+                    La postergación de las acciones correctivas incrementa exponencialmente la probabilidad de reincidencia y la exposición legal de la organización. Los eventos de criticidad alta y crítica no resueltos en un plazo de 30 días generan vulnerabilidades acumulativas que pueden ser explotadas. Además, la tendencia <strong>${tendencia}</strong> en los últimos 3 meses indica que ${recientes > antiguos ? 'la frecuencia de incidentes está aumentando, posiblemente por nuevas variables de riesgo no controladas.' : 'la situación se mantiene controlada, pero la vigilancia debe continuar para evitar repuntes estacionales.'} Cada día de inacción representa un costo de oportunidad en seguridad y un riesgo reputacional creciente ante clientes y auditores.
+                </p>
+            </div>
+
+            <!-- 4. PLAN DE ACCION -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 class="text-base font-bold text-ris-primary mb-3"><i class="fas fa-tasks mr-2"></i>4. PLAN DE ACCIÓN RECOMENDADO</h3>
+                <p class="text-xs text-gray-600 mb-3">Estrategia basada en ciclo PDCA (Plan-Do-Check-Act) y metodología de seguridad patrimonial:</p>
+
+                <div class="space-y-3">
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 font-bold text-xs">1</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-800">INMEDIATO (0-7 días)</h4>
+                            <ul class="text-xs text-gray-600 list-disc list-inside mt-1">
+                                <li>Cierre forzoso de los <strong>${criticos} reportes críticos</strong> mediante acciones de contención y aislamiento.</li>
+                                <li>Reforzar control de accesos en ${topEmpresas.length ? topEmpresas[0][0] : 'las unidades con mayor incidencia'}.</li>
+                                <li>Auditoría express de CCTV y alarmas en zonas con incidentes recurrentes.</li>
+                                ${bascNo > 0 ? '<li>Activar plan de remediación BASC para los '+bascNo+' incumplimientos detectados.</li>' : ''}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0 font-bold text-xs">2</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-800">CORTO PLAZO (8-30 días)</h4>
+                            <ul class="text-xs text-gray-600 list-disc list-inside mt-1">
+                                <li>Implementar capacitaciones específicas dirigidas a mitigar: ${topVulns.slice(0,3).map(v=>v[0]).join(', ')}.</li>
+                                <li>Actualizar procedimientos operativos estándar (POE) de seguridad patrimonial.</li>
+                                <li>Instalar/reparar señalización, iluminación y controles perimetrales donde aplique.</li>
+                                <li>Revisión de contratos de vigilancia y servicios de seguridad privada.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center flex-shrink-0 font-bold text-xs">3</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-800">MEDIANO PLAZO (1-3 meses)</h4>
+                            <ul class="text-xs text-gray-600 list-disc list-inside mt-1">
+                                <li>Desarrollar indicadores KPI de seguridad (frecuencia, gravedad, costo).</li>
+                                <li>Integrar módulo de análisis de riesgo en cadena de suministro (BASC).</li>
+                                <li>Simulacros de emergencia enfocados en los riesgos dominantes: ${topRiesgos.slice(0,3).map(r=>r[0]).join(', ')}.</li>
+                                <li>Evaluación técnica de maquinaria y equipos de protección colectiva.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 font-bold text-xs">4</div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-800">CONTINUO (Seguimiento)</h4>
+                            <ul class="text-xs text-gray-600 list-disc list-inside mt-1">
+                                <li>Reuniones mensuales de comité de seguridad con revisión de este informe.</li>
+                                <li>Auditorías internas trimestrales de cumplimiento BASC y seguridad alimentaria.</li>
+                                <li>Retroalimentación del sistema RIS para ajustar tipos de evento y criticidades.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                ${topAccCorr.length ? `<div class="mt-4 bg-green-50 rounded-lg p-3 border border-green-100"><h4 class="text-xs font-bold text-green-700 mb-1"><i class="fas fa-wrench mr-1"></i> ACCIONES CORRECTIVAS MÁS FRECUENTES APLICADAS</h4><p class="text-xs text-gray-700">${topAccCorr.map(([a,c])=>a+' ('+c+')').join(', ')}. Estas acciones han demostrado efectividad previa y deben mantenerse como primera línea de respuesta.</p></div>` : ''}
+            </div>
+
+            <!-- 5. CONCLUSION -->
+            <div class="bg-gradient-to-r from-ris-success to-green-700 rounded-xl p-5 text-white shadow-lg">
+                <h3 class="text-base font-bold mb-2"><i class="fas fa-clipboard-check mr-2"></i>5. CONCLUSIÓN</h3>
+                <p class="text-xs leading-relaxed opacity-95 text-justify">
+                    Este reporte busca ser una hoja de ruta para fortalecer nuestra seguridad. Estamos a tiempo de realizar estas mejoras preventivas y seguir construyendo un lugar de trabajo seguro para todos. 
+                </p>
+                <p class="text-xs leading-relaxed opacity-95 mt-2 text-justify">
+                    La data analizada refleja una organización con conciencia de reporte (evidenciado en los <strong>${total} registros</strong>), pero con brechas de cierre que deben ser priorizadas. La transformación de datos en acciones es el diferenciador entre una operación reactiva y una operación resilientemente segura. Invitamos a la dirección, líderes de unidad y colaboradores a asumir este informe como un compromiso colectivo de mejora continua.
+                </p>
+                <div class="mt-3 pt-3 border-t border-white/20 flex items-center justify-between">
+                    <span class="text-[10px] opacity-80">Informe generado automáticamente por RIS IA | ${new Date().toLocaleDateString('es-PE')}</span>
+                    <span class="text-[10px] opacity-80"><i class="fas fa-shield-alt mr-1"></i> Senior Seguridad Patrimonial</span>
+                </div>
+            </div>
+
+        </div>`;
+    }
 
     // Init on load
     if (document.readyState === 'loading') {
