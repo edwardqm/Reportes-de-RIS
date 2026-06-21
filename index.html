@@ -95,6 +95,27 @@
         .checkbox-item:hover { background: #f8fafc; border-color: #cbd5e1; }
         .checkbox-item input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #1e3a5f; }
         @media print { .no-print { display: none !important; } body { background: white; } }
+
+        /* ===== MODULO TACTICO - ANALISIS CRIMINAL GEOGRAFICO ===== */
+        .tac-root { background: radial-gradient(ellipse at top, #0f2236 0%, #060d16 55%, #04080d 100%); color: #dce9ef; border-radius: 1rem; overflow: hidden; font-feature-settings: "tnum"; }
+        .tac-mono { font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace; letter-spacing: 0.02em; }
+        .tac-panel { background: linear-gradient(180deg, rgba(20,40,58,0.65), rgba(10,20,30,0.65)); border: 1px solid rgba(56,189,248,0.16); border-radius: 0.85rem; }
+        .tac-panel-head { border-bottom: 1px solid rgba(56,189,248,0.18); background: linear-gradient(90deg, rgba(56,189,248,0.10), transparent); }
+        .tac-chip { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(56,189,248,0.35); color: #7dd3fc; background: rgba(56,189,248,0.08); }
+        .tac-glow-green { color: #34d399; text-shadow: 0 0 12px rgba(52,211,153,0.45); }
+        .tac-glow-amber { color: #fbbf24; text-shadow: 0 0 12px rgba(251,191,36,0.4); }
+        .tac-glow-red { color: #f87171; text-shadow: 0 0 12px rgba(248,113,113,0.45); }
+        .tac-glow-cyan { color: #38bdf8; text-shadow: 0 0 12px rgba(56,189,248,0.4); }
+        .tac-grid-bg { background-image: linear-gradient(rgba(56,189,248,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.07) 1px, transparent 1px); background-size: 28px 28px; }
+        @keyframes tacSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .tac-radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(52,211,153,0.32), transparent 32%); animation: tacSweep 4s linear infinite; pointer-events: none; mix-blend-mode: screen; }
+        @keyframes tacBlip { 0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.55); } 70% { box-shadow: 0 0 0 14px rgba(248,113,113,0); } }
+        .tac-anchor-dot { animation: tacBlip 2.2s infinite; }
+        .tac-recommend-item { border-left: 3px solid #34d399; background: rgba(52,211,153,0.06); }
+        .tac-empty { border: 1px dashed rgba(125,211,252,0.35); }
+        .tac-scrollbar::-webkit-scrollbar { width: 5px; }
+        .tac-scrollbar::-webkit-scrollbar-thumb { background: #1c3a52; border-radius: 3px; }
+        .tac-nav-dot { width: 8px; height: 8px; border-radius: 999px; background: #f87171; box-shadow: 0 0 8px #f87171; }
     </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -183,6 +204,7 @@
                 <button onclick="app.navigate('form')" class="tab-btn active flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap bg-ris-primary text-white" data-tab="form"><i class="fas fa-edit mr-1"></i> NUEVO</button>
                 <button onclick="app.navigate('list')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="list"><i class="fas fa-list mr-1"></i> REPORTES</button>
                 <button onclick="app.navigate('dashboard')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="dashboard"><i class="fas fa-chart-pie mr-1"></i> DASHBOARD</button>
+                <button onclick="app.navigate('tactico')" class="tab-btn relative flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="tactico"><i class="fas fa-crosshairs mr-1"></i> ANALISIS TACTICO<span id="tacticoBadge" class="tac-nav-dot tac-anchor-dot hidden absolute -top-0.5 -right-0.5"></span></button>
                 <button onclick="app.openAdminLogin()" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="admin"><i class="fas fa-cog mr-1"></i> PANEL CONTROL</button>
                 <button onclick="app.navigate('reports')" class="tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-gray-600 hover:bg-gray-100" data-tab="reports"><i class="fas fa-file-export mr-1"></i> EXPORTAR</button>
             </div>
@@ -331,6 +353,28 @@
                                 </div>
                             </div>
                             <p class="text-xs text-blue-600 mt-2"><i class="fas fa-info-circle mr-1"></i> Ingrese la fecha y hora exacta en que ocurrió el hallazgo, incidente o accidente. La fecha/hora del RIS se genera automáticamente.</p>
+                        </div>
+
+                        <!-- UBICACION GEOGRAFICA DEL EVENTO -->
+                        <div class="mb-5 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <div class="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-map-marker-alt text-ris-primary"></i>
+                                    <h4 class="text-xs font-bold text-ris-primary uppercase tracking-wider">Ubicacion Geografica del Evento</h4>
+                                </div>
+                                <span class="text-[10px] font-semibold text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full"><i class="fas fa-crosshairs mr-1"></i> ALIMENTA EL ANALISIS TACTICO</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div class="md:col-span-1 flex flex-col gap-2">
+                                    <button type="button" onclick="app.capturarGPS()" class="w-full px-3 py-2 bg-ris-primary text-white rounded-lg hover:bg-ris-secondary transition text-xs font-bold flex items-center justify-center gap-2"><i class="fas fa-satellite-dish"></i> CAPTURAR GPS</button>
+                                    <button type="button" onclick="app.abrirGoogleMapsSatelite()" class="w-full px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-xs font-bold flex items-center justify-center gap-2"><i class="fas fa-map-marked-alt"></i> VER EN MAPS (SATELITE)</button>
+                                </div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">LATITUD</label><input type="number" step="any" id="geoLat" class="tac-mono w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none text-sm" placeholder="-8.111600"></div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">LONGITUD</label><input type="number" step="any" id="geoLng" class="tac-mono w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none text-sm" placeholder="-79.028800"></div>
+                                <div><label class="block text-xs font-bold text-gray-600 mb-1">PUNTO DE REFERENCIA</label><input type="text" id="geoReferencia" autocapitalize="characters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none text-sm uppercase" placeholder="EJ: PORTON 3 - PERIMETRO NORTE"></div>
+                            </div>
+                            <div id="geoStatus" class="text-xs mt-2 hidden"></div>
+                            <p class="text-xs text-indigo-500 mt-2"><i class="fas fa-lightbulb mr-1"></i> Georreferenciar el evento permite que el modulo de Analisis Tactico calcule zonas de patrullaje, perfil de comportamiento y prediccion del proximo evento.</p>
                         </div>
 
                         <!-- 3.1 Descripcion Detallada -->
@@ -620,7 +664,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <h2 class="text-lg font-bold text-ris-primary"><i class="fas fa-list-alt mr-2"></i> REPORTES REGISTRADOS</h2>
-                    <div class="flex gap-2"><span id="totalReportes" class="px-3 py-1 bg-ris-primary text-white rounded-full text-xs font-bold">0</span></div>
+                    <div class="flex gap-2">
+                        <span id="totalReportes" class="px-3 py-1 bg-ris-primary text-white rounded-full text-xs font-bold">0</span>
+                        <button onclick="app.limpiarHistorialReportes()" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-full text-xs font-bold flex items-center gap-1.5 transition" title="Eliminar todos los registros del historial"><i class="fas fa-broom"></i> LIMPIAR HISTORIAL</button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
                     <input type="text" id="filterSearch" oninput="app.filterReports()" placeholder="BUSCAR..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase">
@@ -765,6 +812,44 @@
                     </div>
                     <div id="usersList" class="space-y-2 max-h-60 overflow-y-auto"></div>
                 </div>
+                <div class="admin-panel p-4 mb-4 border-l-4 border-sky-500">
+                    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h3 class="font-bold text-ris-primary"><i class="fas fa-robot mr-2"></i> INTELIGENCIA ARTIFICIAL (ANALISIS TACTICO)</h3>
+                        <span id="aiConfigStatus" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500"><i class="fas fa-circle mr-1"></i> NO CONFIGURADO</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-3">Configure el proveedor que usaran el "Analisis IA Avanzado" y la "Consulta IA Tactica". Se recomienda <strong>Google Gemini</strong>: es gratuito, no pide tarjeta de credito y funciona aunque use esta app instalada en su celular o computadora (fuera de Claude).</p>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">PROVEEDOR DE IA</label>
+                            <select id="aiProvider" onchange="app.onAiProviderChange()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase">
+                                <option value="gemini">GOOGLE GEMINI (GRATIS, RECOMENDADO)</option>
+                                <option value="moonshot">MOONSHOT / KIMI (REQUIERE SALDO)</option>
+                                <option value="anthropic">CLAUDE (ANTHROPIC) - SOLO DENTRO DE LA VISTA PREVIA DE CLAUDE</option>
+                                <option value="none">DESACTIVADO</option>
+                            </select>
+                        </div>
+                        <div id="aiModelWrap">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">MODELO</label>
+                            <select id="aiModel" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none uppercase"></select>
+                        </div>
+                        <div id="aiKeyWrap">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">CLAVE API (SE GUARDA SOLO EN ESTE DISPOSITIVO)</label>
+                            <input type="password" id="aiApiKey" autocomplete="off" autocapitalize="none" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none font-mono" placeholder="AIzaSy... / sk-...">
+                        </div>
+                        <div id="aiBaseUrlWrap" class="hidden">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">URL BASE (AVANZADO)</label>
+                            <input type="text" id="aiBaseUrl" autocomplete="off" autocapitalize="none" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ris-primary outline-none font-mono text-[11px]" placeholder="https://api.moonshot.ai/v1">
+                        </div>
+                    </div>
+                    <p id="aiProviderWarning" class="hidden text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 mb-2"></p>
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <button onclick="app.guardarConfigIA()" class="px-4 py-2 bg-ris-primary text-white rounded-lg font-bold hover:bg-ris-secondary transition text-xs flex items-center gap-2"><i class="fas fa-save"></i> GUARDAR CONFIGURACION</button>
+                        <button onclick="app.probarConexionIA()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition text-xs flex items-center gap-2"><i class="fas fa-plug"></i> PROBAR CONEXION</button>
+                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="px-4 py-2 bg-sky-600 text-white rounded-lg font-bold hover:bg-sky-700 transition text-xs flex items-center gap-2"><i class="fas fa-key"></i> OBTENER CLAVE GRATUITA DE GEMINI</a>
+                    </div>
+                    <div id="aiTestResult" class="text-xs mt-1"></div>
+                    <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-shield-halved mr-1"></i> La clave se guarda unicamente en el almacenamiento local de este navegador/dispositivo; nunca se envia a ningun servidor de este sistema. Cualquier persona con acceso fisico a este dispositivo podria visualizarla, asi que no la comparta.</p>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                     <div class="admin-panel p-4">
                         <h3 class="font-bold text-ris-primary mb-3"><i class="fas fa-building mr-2"></i> EMPRESAS</h3>
@@ -843,6 +928,167 @@
                         <button onclick="app.printReport()" class="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition text-sm font-semibold"><i class="fas fa-print"></i> IMPRIMIR</button>
                         <button onclick="app.shareNative()" class="flex items-center gap-2 px-4 py-2 bg-ris-primary text-white rounded-lg hover:bg-ris-secondary transition text-sm font-semibold"><i class="fas fa-share-alt"></i> COMPARTIR</button>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SECCION: ANALISIS TACTICO GEOGRAFICO (RIS INTELIGENTE) ============ -->
+        <section id="section-tactico" class="hidden animate-slide-in">
+            <div class="tac-root p-4 md:p-6 mb-4">
+                <!-- HEADER -->
+                <div class="relative text-center mb-6 py-4 rounded-xl overflow-hidden">
+                    <div class="tac-grid-bg absolute inset-0 opacity-60 pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <span class="tac-chip"><i class="fas fa-brain mr-1"></i> RIS INTELIGENTE</span>
+                        <h2 class="text-xl md:text-3xl font-black tracking-tight text-white mt-2">ANALISIS CRIMINAL TACTICO GEOGRAFICO</h2>
+                        <p class="text-[11px] md:text-sm text-cyan-100/70 mt-2 max-w-3xl mx-auto leading-relaxed">Integracion de 3 tecnicas: <span class="tac-glow-green font-bold">GOTTLIEB</span> (zonas de patrullaje) + <span class="tac-glow-cyan font-bold">SPIDER MEAN</span> (perfilacion y anclaje) + <span class="tac-glow-amber font-bold">MSD</span> (prediccion temporal)</p>
+                    </div>
+                </div>
+
+                <!-- CUANDO SE ACTIVA + RESULTADO -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+                    <div class="tac-panel p-4 lg:col-span-2">
+                        <h3 class="text-xs font-bold tac-glow-cyan uppercase tracking-wider mb-2"><i class="fas fa-power-off mr-1"></i> ¿Cuando se activa?</h3>
+                        <p class="text-[11px] md:text-xs text-slate-300 leading-relaxed">Se activa automaticamente cuando hay suficientes incidentes georreferenciados para un analisis estadistico confiable (patrones criminales Gottlieb, Spider Mean, MSD, perfilacion geografica, zonas de riesgo, mapa de calor). Cada nuevo reporte con coordenadas GPS recalcula el modelo.</p>
+                        <div id="tacActivationStatus" class="mt-3 tac-mono text-[11px]"></div>
+                    </div>
+                    <div class="tac-panel p-4">
+                        <h3 class="text-xs font-bold tac-glow-green uppercase tracking-wider mb-2"><i class="fas fa-shield-alt mr-1"></i> Resultado</h3>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5">
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Zonas de patrullaje priorizadas</li>
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Perfil del comportamiento delictivo</li>
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Prediccion del proximo evento</li>
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Mapa de calor de riesgo</li>
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Recomendaciones tacticas</li>
+                            <li><i class="fas fa-check text-emerald-400 mr-1.5"></i> Analisis IA avanzado y consulta interactiva</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- METODOLOGIA -->
+                <div class="tac-panel p-4 mb-5">
+                    <h3 class="text-xs font-bold text-center tac-glow-amber uppercase tracking-widest mb-4">Metodologia Integrada</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center text-emerald-300 font-black text-sm flex-shrink-0">1</div>
+                            <div><p class="text-xs font-bold tac-glow-green"><i class="fas fa-bullseye mr-1"></i> GOTTLIEB</p><p class="text-[11px] text-slate-400 mt-1">Calcula el centro medio (punto de anclaje) y zonas concentricas por desviacion estandar para priorizar el patrullaje.</p></div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-full bg-sky-500/15 border border-sky-400/40 flex items-center justify-center text-sky-300 font-black text-sm flex-shrink-0">2</div>
+                            <div><p class="text-xs font-bold tac-glow-cyan"><i class="fas fa-spider mr-1"></i> SPIDER MEAN</p><p class="text-[11px] text-slate-400 mt-1">Conecta cada incidente con el punto de anclaje para identificar el radio de movilidad y el comportamiento del infractor.</p></div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-300 font-black text-sm flex-shrink-0">3</div>
+                            <div><p class="text-xs font-bold tac-glow-amber"><i class="fas fa-route mr-1"></i> MSD</p><p class="text-[11px] text-slate-400 mt-1">Analiza la secuencia temporal y la trayectoria de los eventos para estimar la ubicacion y ventana de tiempo del proximo incidente.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTROS -->
+                <div class="tac-panel p-3 md:p-4 mb-5 flex flex-wrap items-end gap-3 no-print">
+                    <div class="flex-1 min-w-[140px]"><label class="block text-[10px] font-bold text-cyan-200/70 uppercase mb-1">Ambito / Sede</label><select id="tacFiltroSede" onchange="app.recalcTactico()" class="w-full px-3 py-2 bg-slate-900/60 border border-slate-600 rounded-lg text-xs text-slate-100 uppercase"><option value="">TODAS LAS SEDES</option></select></div>
+                    <div class="flex-1 min-w-[140px]"><label class="block text-[10px] font-bold text-cyan-200/70 uppercase mb-1">Tipo de evento</label><select id="tacFiltroTipo" onchange="app.recalcTactico()" class="w-full px-3 py-2 bg-slate-900/60 border border-slate-600 rounded-lg text-xs text-slate-100 uppercase"><option value="">TODOS LOS TIPOS</option></select></div>
+                    <div class="flex-1 min-w-[140px]"><label class="block text-[10px] font-bold text-cyan-200/70 uppercase mb-1">Periodo</label><select id="tacFiltroPeriodo" onchange="app.recalcTactico()" class="w-full px-3 py-2 bg-slate-900/60 border border-slate-600 rounded-lg text-xs text-slate-100 uppercase">
+                        <option value="30">ULTIMOS 30 DIAS</option><option value="90" selected>ULTIMOS 90 DIAS</option><option value="180">ULTIMOS 180 DIAS</option><option value="365">ULTIMO ANO</option><option value="0">TODO EL HISTORICO</option>
+                    </select></div>
+                    <button onclick="app.recalcTactico()" class="px-4 py-2 bg-ris-primary hover:bg-ris-secondary text-white rounded-lg text-xs font-bold flex items-center gap-2"><i class="fas fa-sync-alt"></i> ACTUALIZAR</button>
+                    <button id="tacDemoBtn" onclick="app.toggleDemoTactico()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold flex items-center gap-2"><i class="fas fa-flask"></i> DATOS DEMO</button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold flex items-center gap-2"><i class="fas fa-print"></i> IMPRIMIR</button>
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div id="tacEmptyState" class="tac-empty rounded-xl p-8 md:p-12 text-center hidden">
+                    <i class="fas fa-satellite-dish text-4xl text-cyan-400/60 mb-3"></i>
+                    <h3 class="text-sm font-bold text-cyan-100 mb-2">DATOS INSUFICIENTES PARA EL ANALISIS</h3>
+                    <p class="text-xs text-slate-400 max-w-md mx-auto" id="tacEmptyMsg">El modulo necesita al menos 5 incidentes georreferenciados para calcular zonas de patrullaje, perfil y prediccion de forma confiable.</p>
+                    <p class="text-[11px] text-slate-500 mt-3">Capture la ubicacion GPS al registrar un nuevo RIS (seccion 3. DESCRIPCION DEL EVENTO), o pruebe el modulo con datos de demostracion.</p>
+                    <button onclick="app.toggleDemoTactico()" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold"><i class="fas fa-flask mr-1"></i> CARGAR DATOS DE DEMOSTRACION</button>
+                </div>
+
+                <!-- CONTENIDO PRINCIPAL -->
+                <div id="tacMainContent" class="hidden">
+                    <!-- KPIs -->
+                    <div id="tacKpiRow" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5"></div>
+
+                    <!-- INCIDENTES + GOTTLIEB + SPIDER/MSD -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-5">
+                        <div class="lg:col-span-3 tac-panel p-3 flex flex-col">
+                            <h3 class="text-[11px] font-bold tac-glow-cyan uppercase tracking-wider mb-2"><i class="fas fa-list mr-1"></i> Incidentes Analizados</h3>
+                            <div id="tacIncidentTable" class="tac-scrollbar overflow-y-auto max-h-[460px] text-[10px] tac-mono"></div>
+                        </div>
+                        <div class="lg:col-span-5 tac-panel p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-[11px] font-bold tac-glow-green uppercase tracking-wider"><i class="fas fa-bullseye mr-1"></i> ① Gottlieb — Zonas de Patrullaje</h3>
+                            </div>
+                            <div class="relative w-full" style="aspect-ratio: 4/3;"><canvas id="tacGottliebCanvas" class="w-full h-full rounded-lg"></canvas></div>
+                            <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-[10px] text-slate-300">
+                                <div><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 mr-1"></span>1σ ≈ 68% probabilidad</div>
+                                <div><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 mr-1"></span>2σ ≈ 95% probabilidad</div>
+                                <div><span class="inline-block w-2.5 h-2.5 rounded-full bg-red-400 mr-1"></span>3σ ≈ 99% probabilidad</div>
+                                <div><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-300 mr-1"></span>Punto de anclaje</div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-4 flex flex-col gap-4">
+                            <div class="tac-panel p-3">
+                                <h3 class="text-[11px] font-bold tac-glow-cyan uppercase tracking-wider mb-2"><i class="fas fa-spider mr-1"></i> ② Spider Mean — Comportamiento</h3>
+                                <div class="relative w-full" style="aspect-ratio: 4/3;"><canvas id="tacSpiderCanvas" class="w-full h-full rounded-lg"></canvas></div>
+                                <div id="tacProfile" class="text-[10px] text-slate-300 mt-2 space-y-1"></div>
+                            </div>
+                            <div class="tac-panel p-3">
+                                <h3 class="text-[11px] font-bold tac-glow-amber uppercase tracking-wider mb-2"><i class="fas fa-route mr-1"></i> ③ MSD — Prediccion del Proximo Evento</h3>
+                                <div class="relative w-full" style="aspect-ratio: 4/3;"><canvas id="tacMSDCanvas" class="w-full h-full rounded-lg"></canvas></div>
+                                <div id="tacPrediction" class="text-[10px] text-slate-300 mt-2 space-y-1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HEATMAP + RECOMENDACIONES + RESUMEN + GAUGE -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        <div class="tac-panel p-3">
+                            <h3 class="text-[11px] font-bold text-red-300 uppercase tracking-wider mb-2"><i class="fas fa-fire mr-1"></i> Mapa de Calor</h3>
+                            <div class="relative w-full" style="aspect-ratio: 1/1;"><canvas id="tacHeatmapCanvas" class="w-full h-full rounded-lg"></canvas></div>
+                            <div class="flex items-center justify-between text-[9px] text-slate-400 mt-1"><span>BAJO</span><div class="flex-1 h-2 mx-2 rounded-full" style="background:linear-gradient(90deg,#1e3a5f,#34d399,#fbbf24,#f87171)"></div><span>ALTO</span></div>
+                        </div>
+                        <div class="tac-panel p-3">
+                            <h3 class="text-[11px] font-bold tac-glow-green uppercase tracking-wider mb-2"><i class="fas fa-tasks mr-1"></i> Recomendacion Tactica</h3>
+                            <ul id="tacRecomendaciones" class="space-y-1.5 text-[10.5px]"></ul>
+                        </div>
+                        <div class="tac-panel p-3">
+                            <h3 class="text-[11px] font-bold tac-glow-cyan uppercase tracking-wider mb-2"><i class="fas fa-file-alt mr-1"></i> Resumen Ejecutivo</h3>
+                            <p id="tacResumenEjecutivo" class="text-[10.5px] text-slate-300 leading-relaxed"></p>
+                        </div>
+                        <div class="tac-panel p-3 flex flex-col items-center justify-center">
+                            <h3 class="text-[11px] font-bold text-slate-200 uppercase tracking-wider mb-2 self-start"><i class="fas fa-gauge-high mr-1"></i> Nivel de Riesgo Global</h3>
+                            <div class="relative w-32 h-32"><canvas id="tacGaugeCanvas" class="w-full h-full"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span id="tacGaugeLabel" class="text-lg font-black">--</span><span id="tacGaugeScore" class="text-[9px] text-slate-400 tac-mono">0/100</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ANALISIS IA AVANZADO -->
+                    <div class="tac-panel p-4 mt-4">
+                        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                            <h3 class="text-xs font-bold tac-glow-cyan uppercase tracking-wider"><i class="fas fa-microchip mr-1"></i> Analisis IA Avanzado</h3>
+                            <button id="tacAIBtn" onclick="app.tacGenerarAnalisisIA()" class="px-3 py-1.5 bg-sky-700 hover:bg-sky-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1.5 no-print"><i class="fas fa-wand-magic-sparkles"></i> GENERAR ANALISIS IA</button>
+                        </div>
+                        <div id="tacAIOutput" class="text-[11px] text-slate-400 normal-case leading-relaxed min-h-[40px]"><p class="normal-case">Pulse "GENERAR ANALISIS IA" para obtener una interpretacion adicional generada por IA sobre el patron detectado. Requiere un proveedor configurado en <button onclick="app.navigate('admin')" class="underline hover:text-slate-200">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button>.</p></div>
+                    </div>
+
+                    <!-- CONSULTA IA TACTICA -->
+                    <div class="tac-panel p-4 mt-4 no-print">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-bold tac-glow-green uppercase tracking-wider"><i class="fas fa-comments mr-1"></i> Consulta IA Tactica</h3>
+                            <button onclick="app.tacClearChat()" class="text-[10px] text-slate-400 hover:text-slate-200"><i class="fas fa-eraser mr-1"></i> LIMPIAR CHAT</button>
+                        </div>
+                        <div id="tacChatMessages" class="tac-scrollbar overflow-y-auto max-h-[220px] mb-3 p-1"></div>
+                        <div class="flex gap-2">
+                            <input type="text" id="tacChatInput" onkeydown="app.tacChatKeydown(event)" placeholder="Pregunte sobre el analisis tactico actual..." class="flex-1 px-3 py-2 bg-slate-900/60 border border-slate-600 rounded-lg text-xs text-slate-100 normal-case placeholder-slate-500 outline-none focus:ring-2 focus:ring-sky-500">
+                            <button id="tacChatSendBtn" onclick="app.tacEnviarConsultaIA()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        <p class="text-[9px] text-slate-500 mt-2 normal-case"><i class="fas fa-circle-info mr-1"></i> Requiere un proveedor de IA configurado en <button onclick="app.navigate('admin')" class="underline hover:text-slate-300">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button> (Google Gemini gratuito, recomendado).</p>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 mt-4 text-center max-w-3xl mx-auto leading-relaxed"><i class="fas fa-circle-info mr-1"></i> Modelo estadistico de apoyo a la decision basado en datos historicos georreferenciados (Gottlieb / Spider Mean / MSD). No sustituye la investigacion criminal profesional ni constituye prueba legal; las estimaciones de modus operandi se basan unicamente en patrones de lugar, fecha y hora.</p>
                 </div>
             </div>
         </section>
@@ -1113,6 +1359,8 @@
         try { initEventListeners(); } catch(e) { console.error('initEventListeners error', e); }
         try { renderUsersList(); } catch(e) { console.error('renderUsersList error', e); }
         try { renderCatalogLists(); } catch(e) { console.error('renderCatalogLists error', e); }
+        try { loadAiConfig(); } catch(e) { console.error('loadAiConfig error', e); }
+        try { tacCheckBadgeOnInit(); } catch(e) { console.error('tacCheckBadgeOnInit error', e); }
         setTimeout(() => { try { initCatalogSelects(); } catch(e) {} }, 100);
     }
 
@@ -1173,7 +1421,7 @@
     // ==================== NAVIGATION / PESTAÑAS ====================
     function navigate(tabId) {
         // Hide all sections
-        const sections = ['section-form', 'section-list', 'section-dashboard', 'section-admin', 'section-reports'];
+        const sections = ['section-form', 'section-list', 'section-dashboard', 'section-admin', 'section-reports', 'section-tactico'];
         sections.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -1203,6 +1451,7 @@
         if (tabId === 'dashboard') renderDashboard();
         if (tabId === 'admin') renderAdmin();
         if (tabId === 'reports') initExportFilters();
+        if (tabId === 'tactico') recalcTactico();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1771,6 +2020,58 @@
     }
 
     // ==================== FORM ====================
+    // ==================== GEOLOCALIZACION DEL EVENTO ====================
+    function capturarGPS() {
+        const statusEl = document.getElementById('geoStatus');
+        if (!navigator.geolocation) {
+            showToast('Geolocalizacion no disponible en este dispositivo', 'error');
+            return;
+        }
+        if (statusEl) {
+            statusEl.classList.remove('hidden');
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Obteniendo ubicacion GPS...';
+            statusEl.className = 'text-xs mt-2 text-blue-600';
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+                const acc = Math.round(pos.coords.accuracy || 0);
+                const latEl = document.getElementById('geoLat');
+                const lngEl = document.getElementById('geoLng');
+                if (latEl) latEl.value = lat;
+                if (lngEl) lngEl.value = lng;
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Ubicacion capturada (±${acc}m de precision)`;
+                    statusEl.className = 'text-xs mt-2 text-green-600 font-semibold';
+                }
+                showToast('Ubicacion GPS capturada', 'success');
+            },
+            (err) => {
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> No se pudo obtener la ubicacion. Ingresela manualmente.';
+                    statusEl.className = 'text-xs mt-2 text-red-600';
+                }
+                showToast('No se pudo obtener la ubicacion GPS', 'warning');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function tacGoogleMapsUrl(lat, lng) {
+        return `https://www.google.com/maps?q=${lat},${lng}&t=k&z=19`;
+    }
+
+    function abrirGoogleMapsSatelite() {
+        const lat = parseFloat(document.getElementById('geoLat')?.value);
+        const lng = parseFloat(document.getElementById('geoLng')?.value);
+        if (isNaN(lat) || isNaN(lng)) {
+            showToast('Primero capture o ingrese las coordenadas (latitud/longitud)', 'warning');
+            return;
+        }
+        window.open(tacGoogleMapsUrl(lat, lng), '_blank');
+    }
+
     function generateCode() {
         const year = new Date().getFullYear();
         const count = (reports.length + 1).toString().padStart(6, '0');
@@ -1811,6 +2112,8 @@
         currentEditingIndex = -1;
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
         document.getElementById('criticidadBadge')?.classList.add('hidden');
+        const geoStatusEl = document.getElementById('geoStatus');
+        if (geoStatusEl) { geoStatusEl.classList.add('hidden'); geoStatusEl.textContent = ''; }
         ['vulnAutoBadge', 'riesgoAutoBadge', 'accionesAutoBadge', 'conclAutoBadge'].forEach(id => {
             document.getElementById(id)?.classList.add('hidden');
         });
@@ -1843,6 +2146,9 @@
             impacto: getCheckboxValues('impacto'),
             fechaHallazgo: document.getElementById('fechaHallazgo')?.value || '',
             horaHallazgo: document.getElementById('horaHallazgo')?.value || '',
+            lat: parseFloat(document.getElementById('geoLat')?.value) || null,
+            lng: parseFloat(document.getElementById('geoLng')?.value) || null,
+            geoReferencia: document.getElementById('geoReferencia')?.value || '',
             descripcionDetallada: document.getElementById('descripcionDetallada')?.value || '',
             vulnerabilidad: getCheckboxValues('vulnerabilidad'),
             vulnerabilidadOtras: document.getElementById('vulnerabilidadOtras')?.value || '',
@@ -2121,8 +2427,8 @@
 
             return `
             <div class="bg-white rounded-lg border border-gray-200 p-3 card-hover cursor-pointer" onclick="app.openDetail('${r.id}')">
-                <div class="flex items-start justify-between">
-                    <div>
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-xs font-mono font-bold text-ris-primary">${r.codigo}</span>
                             <span class="${badgeClass} px-2 py-0.5 rounded-full text-[10px] font-bold">${r.nivelCriticidad}</span>
@@ -2130,7 +2436,10 @@
                         <h4 class="font-bold text-sm text-gray-800">${r.tipoEvento}</h4>
                         <p class="text-xs text-gray-500">${r.empresa} | ${r.fecha} ${r.hora}</p>
                     </div>
-                    <span class="text-xs px-2 py-1 rounded-full ${r.status === 'CERRADO' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">${r.status}</span>
+                    <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                        <span class="text-xs px-2 py-1 rounded-full ${r.status === 'CERRADO' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">${r.status}</span>
+                        <button onclick="app.eliminarReporteIndividual('${r.id}', event)" class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition" title="Eliminar este registro"><i class="fas fa-trash-alt text-xs"></i></button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
@@ -2187,6 +2496,19 @@
         document.getElementById('nivelCriticidad').value = report.nivelCriticidad || '';
         document.getElementById('fechaHallazgo').value = report.fechaHallazgo || '';
         document.getElementById('horaHallazgo').value = report.horaHallazgo || '';
+        document.getElementById('geoLat').value = (report.lat !== null && report.lat !== undefined) ? report.lat : '';
+        document.getElementById('geoLng').value = (report.lng !== null && report.lng !== undefined) ? report.lng : '';
+        document.getElementById('geoReferencia').value = report.geoReferencia || '';
+        const geoStatusEl = document.getElementById('geoStatus');
+        if (geoStatusEl) {
+            if (report.lat && report.lng) {
+                geoStatusEl.classList.remove('hidden');
+                geoStatusEl.innerHTML = '<i class="fas fa-map-marker-alt mr-1"></i> Ubicacion previamente registrada en este reporte';
+                geoStatusEl.className = 'text-xs mt-2 text-blue-600';
+            } else {
+                geoStatusEl.classList.add('hidden');
+            }
+        }
         document.getElementById('descripcionDetallada').value = report.descripcionDetallada || '';
         document.getElementById('vulnerabilidadOtras').value = report.vulnerabilidadOtras || '';
         document.getElementById('riesgoOtros').value = report.riesgoOtros || '';
@@ -2237,7 +2559,35 @@
         }
         closeModal();
         renderReportsList();
+        try { tacCheckBadgeOnInit(); } catch(e) {}
         showToast('Reporte eliminado', 'warning');
+    }
+
+    function eliminarReporteIndividual(id, event) {
+        if (event) { event.stopPropagation(); event.preventDefault(); }
+        const report = reports.find(r => r.id === id);
+        if (!report) return;
+        if (!confirm('¿Eliminar el reporte ' + (report.codigo || '') + '? Esta accion no se puede deshacer.')) return;
+        reports = reports.filter(r => r.id !== id);
+        saveData();
+        renderReportsList();
+        try { tacCheckBadgeOnInit(); } catch(e) {}
+        showToast('Reporte eliminado', 'warning');
+    }
+
+    function limpiarHistorialReportes() {
+        if (reports.length === 0) { showToast('No hay registros en el historial', 'info'); return; }
+        const confirmText = prompt('Esta accion eliminara PERMANENTEMENTE los ' + reports.length + ' registros del historial de RIS.\n\nSe recomienda generar un respaldo antes (boton Backup en el encabezado).\n\nEscriba ELIMINAR para confirmar:');
+        if (confirmText === null) return;
+        if (confirmText.trim().toUpperCase() !== 'ELIMINAR') {
+            showToast('Operacion cancelada: texto de confirmacion incorrecto', 'warning');
+            return;
+        }
+        reports = [];
+        saveData();
+        renderReportsList();
+        try { tacCheckBadgeOnInit(); } catch(e) {}
+        showToast('Historial de reportes RIS eliminado por completo', 'warning');
     }
 
     function exportCurrentPDF() {
@@ -2639,6 +2989,7 @@
     function renderAdmin() {
         renderUsersList();
         renderCatalogLists();
+        try { renderAiSettingsForm(); } catch(e) { console.error('renderAiSettingsForm error', e); }
     }
 
     function addUser() {
@@ -2841,6 +3192,1006 @@
         }
     }
 
+    // ==================== ANALISIS TACTICO GEOGRAFICO (RIS INTELIGENTE) ====================
+    const TAC_MIN_SAMPLE = 5;
+    let tacDemoActive = false;
+    let tacDemoReports = [];
+    let tacLastResult = null;
+
+    function tacIsGeo(r) {
+        return r && typeof r.lat === 'number' && typeof r.lng === 'number' && !isNaN(r.lat) && !isNaN(r.lng) && r.lat !== 0 && r.lng !== 0;
+    }
+
+    function tacGenerateDemoData() {
+        const baseLat = -8.1116, baseLng = -79.0288; // referencia La Libertad, Peru
+        const tipos = ['ROBO / HURTO', 'ROBO / HURTO', 'ROBO / HURTO', 'ACCESO NO AUTORIZADO', 'INTRUSION / INGRESO INDEBIDO'];
+        const horas = ['21:15', '22:40', '23:10', '01:20', '22:50', '21:05', '23:25', '20:45', '22:15', '21:55', '23:50', '20:20'];
+        const demo = [];
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+            const dias = Math.floor(Math.random() * 80) + 2;
+            const d = new Date(now.getTime() - dias * 86400000);
+            const ang = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 380 + 40;
+            const dx = dist * Math.cos(ang);
+            const dy = dist * Math.sin(ang);
+            const lat = baseLat + dy / 110540;
+            const lng = baseLng + dx / (111320 * Math.cos(baseLat * Math.PI / 180));
+            demo.push({
+                id: 'DEMO-' + (i + 1),
+                codigo: 'RIS-DEMO-' + String(i + 1).padStart(3, '0'),
+                fecha: d.toLocaleDateString('es-PE'),
+                fechaHallazgo: d.toISOString().slice(0, 10),
+                horaHallazgo: horas[i % horas.length],
+                tipoEvento: tipos[i % tipos.length],
+                nivelCriticidad: i % 4 === 0 ? 'CRITICO' : (i % 3 === 0 ? 'MEDIO' : 'ALTO'),
+                sede: 'SEDE TRUJILLO (DEMO)',
+                lat: lat, lng: lng,
+                geoReferencia: 'PUNTO DEMO ' + (i + 1),
+                createdAt: d.toISOString(),
+                isDemo: true
+            });
+        }
+        return demo;
+    }
+
+    function toggleDemoTactico() {
+        tacDemoActive = !tacDemoActive;
+        if (tacDemoActive) {
+            tacDemoReports = tacGenerateDemoData();
+            showToast('Datos de demostracion cargados (12 incidentes simulados)', 'info');
+        } else {
+            tacDemoReports = [];
+            showToast('Datos de demostracion removidos', 'info');
+        }
+        const btn = document.getElementById('tacDemoBtn');
+        if (btn) {
+            btn.classList.toggle('bg-emerald-600', tacDemoActive);
+            btn.classList.toggle('bg-slate-700', !tacDemoActive);
+        }
+        recalcTactico();
+    }
+
+    function tacGetSourceReports() {
+        return tacDemoActive ? reports.concat(tacDemoReports) : reports;
+    }
+
+    function tacPopulateFilters() {
+        const src = tacGetSourceReports();
+        const sedeSel = document.getElementById('tacFiltroSede');
+        const tipoSel = document.getElementById('tacFiltroTipo');
+        if (sedeSel) {
+            const current = sedeSel.value;
+            const sedes = Array.from(new Set(src.map(r => r.sede).filter(Boolean))).sort();
+            sedeSel.innerHTML = '<option value="">TODAS LAS SEDES</option>' + sedes.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (sedes.includes(current)) sedeSel.value = current;
+        }
+        if (tipoSel) {
+            const current = tipoSel.value;
+            const tipos = Array.from(new Set(src.map(r => r.tipoEvento).filter(Boolean))).sort();
+            tipoSel.innerHTML = '<option value="">TODOS LOS TIPOS</option>' + tipos.map(t => `<option value="${t}">${t}</option>`).join('');
+            if (tipos.includes(current)) tipoSel.value = current;
+        }
+    }
+
+    function tacParseEventDate(r) {
+        if (r.fechaHallazgo) {
+            const t = r.horaHallazgo || '00:00';
+            const d = new Date(r.fechaHallazgo + 'T' + t + ':00');
+            if (!isNaN(d.getTime())) return d;
+        }
+        if (r.createdAt) {
+            const d = new Date(r.createdAt);
+            if (!isNaN(d.getTime())) return d;
+        }
+        return null;
+    }
+
+    function tacGetGeoReports() {
+        const sedeF = document.getElementById('tacFiltroSede')?.value || '';
+        const tipoF = document.getElementById('tacFiltroTipo')?.value || '';
+        const periodoF = parseInt(document.getElementById('tacFiltroPeriodo')?.value || '90');
+        const now = new Date();
+        let list = tacGetSourceReports().filter(tacIsGeo);
+        if (sedeF) list = list.filter(r => r.sede === sedeF);
+        if (tipoF) list = list.filter(r => r.tipoEvento === tipoF);
+        list = list.map(r => ({ report: r, date: tacParseEventDate(r) }));
+        if (periodoF > 0) {
+            const cutoff = new Date(now.getTime() - periodoF * 86400000);
+            list = list.filter(o => !o.date || o.date >= cutoff);
+        }
+        list.sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0));
+        return list;
+    }
+
+    // ---------- GEOMETRIA: GOTTLIEB (centro medio + distancia estandar) ----------
+    function tacProjectMeters(points) {
+        const n = points.length;
+        const refLat = points.reduce((s, p) => s + p.report.lat, 0) / n;
+        const refLng = points.reduce((s, p) => s + p.report.lng, 0) / n;
+        const mPerDegLat = 110540;
+        const mPerDegLng = 111320 * Math.cos(refLat * Math.PI / 180) || 1;
+        const xy = points.map(p => ({
+            x: (p.report.lng - refLng) * mPerDegLng,
+            y: (p.report.lat - refLat) * mPerDegLat,
+            report: p.report, date: p.date
+        }));
+        return { xy, refLat, refLng, mPerDegLat, mPerDegLng };
+    }
+
+    function tacMeanCenter(xy) {
+        const n = xy.length;
+        return { x: xy.reduce((s, p) => s + p.x, 0) / n, y: xy.reduce((s, p) => s + p.y, 0) / n };
+    }
+
+    function tacStandardDistance(xy, center) {
+        const n = xy.length;
+        const sumSq = xy.reduce((s, p) => s + (p.x - center.x) ** 2 + (p.y - center.y) ** 2, 0);
+        return Math.sqrt(sumSq / n);
+    }
+
+    function tacMetersToLatLng(x, y, proj) {
+        return { lat: proj.refLat + y / proj.mPerDegLat, lng: proj.refLng + x / proj.mPerDegLng };
+    }
+
+    // ---------- SPIDER MEAN: perfil de comportamiento ----------
+    function tacBuildProfile(xy, center, sd, points) {
+        const n = xy.length;
+        const dists = xy.map(p => Math.hypot(p.x - center.x, p.y - center.y));
+        const avgDist = dists.reduce((a, b) => a + b, 0) / n;
+
+        const buckets = { 'MADRUGADA (00:00-06:00)': 0, 'MAÑANA (06:00-12:00)': 0, 'TARDE (12:00-18:00)': 0, 'NOCHE (18:00-24:00)': 0 };
+        points.forEach(p => {
+            const hora = p.report.horaHallazgo || (p.date ? p.date.toTimeString().slice(0, 5) : null);
+            if (!hora) return;
+            const h = parseInt(hora.split(':')[0]);
+            if (isNaN(h)) return;
+            if (h < 6) buckets['MADRUGADA (00:00-06:00)']++;
+            else if (h < 12) buckets['MAÑANA (06:00-12:00)']++;
+            else if (h < 18) buckets['TARDE (12:00-18:00)']++;
+            else buckets['NOCHE (18:00-24:00)']++;
+        });
+        const patronHorarioEntry = Object.entries(buckets).sort((a, b) => b[1] - a[1])[0];
+
+        let movilidad;
+        if (avgDist < 150) movilidad = 'A PIE (RADIO REDUCIDO)';
+        else if (avgDist < 600) movilidad = 'A PIE / BICICLETA';
+        else if (avgDist < 1500) movilidad = 'VEHICULO LIGERO / MOTOCICLETA';
+        else movilidad = 'VEHICULO MOTORIZADO';
+
+        const tipoCount = {};
+        points.forEach(p => { const t = p.report.tipoEvento || 'NO ESPECIFICADO'; tipoCount[t] = (tipoCount[t] || 0) + 1; });
+        const tipoTopEntry = Object.entries(tipoCount).sort((a, b) => b[1] - a[1])[0];
+
+        const sorted = points.filter(p => p.date).slice().sort((a, b) => a.date - b.date);
+        let planificacion = 'INDETERMINADO';
+        if (sorted.length >= 3) {
+            const gaps = [];
+            for (let i = 1; i < sorted.length; i++) gaps.push((sorted[i].date - sorted[i - 1].date) / 86400000);
+            const meanGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+            const sdGap = Math.sqrt(gaps.reduce((s, g) => s + (g - meanGap) ** 2, 0) / gaps.length);
+            const cv = meanGap > 0 ? sdGap / meanGap : 1;
+            planificacion = cv < 0.45 ? 'ALTO (PATRON REGULAR)' : (cv < 0.9 ? 'MEDIO' : 'BAJO (OPORTUNISTA)');
+        }
+
+        return {
+            n, avgDist, sd,
+            comfortZoneMin: sd * 0.6, comfortZoneMax: sd * 1.4,
+            patronHorario: patronHorarioEntry && patronHorarioEntry[1] > 0 ? patronHorarioEntry[0] : 'SIN PATRON HORARIO DEFINIDO',
+            movilidad,
+            tipoTop: tipoTopEntry ? tipoTopEntry[0] : 'NO ESPECIFICADO',
+            tipoTopCount: tipoTopEntry ? tipoTopEntry[1] : 0,
+            planificacion
+        };
+    }
+
+    // ---------- MSD: prediccion del proximo evento ----------
+    function tacBuildPrediction(points, proj, center, sd) {
+        const sorted = points.filter(p => p.date).slice().sort((a, b) => a.date - b.date);
+        const n = sorted.length;
+        if (n < 2) return null;
+        const xySorted = sorted.map(p => ({
+            x: (p.report.lng - proj.refLng) * proj.mPerDegLng,
+            y: (p.report.lat - proj.refLat) * proj.mPerDegLat,
+            date: p.date, report: p.report
+        }));
+        const k = Math.min(4, n);
+        const last = xySorted.slice(-k);
+        let vx = 0, vy = 0, wsum = 0;
+        for (let i = 1; i < last.length; i++) {
+            const w = i;
+            vx += (last[i].x - last[i - 1].x) * w;
+            vy += (last[i].y - last[i - 1].y) * w;
+            wsum += w;
+        }
+        if (wsum > 0) { vx /= wsum; vy /= wsum; }
+        const lastPoint = last[last.length - 1];
+        let predX = lastPoint.x + vx * 0.7;
+        let predY = lastPoint.y + vy * 0.7;
+        predX = predX * 0.65 + center.x * 0.35;
+        predY = predY * 0.65 + center.y * 0.35;
+        const dFromCenter = Math.hypot(predX - center.x, predY - center.y);
+        const maxRadius = sd * 2.2;
+        if (dFromCenter > maxRadius && dFromCenter > 0) {
+            const scale = maxRadius / dFromCenter;
+            predX = center.x + (predX - center.x) * scale;
+            predY = center.y + (predY - center.y) * scale;
+        }
+        const predLatLng = tacMetersToLatLng(predX, predY, proj);
+
+        const gaps = [];
+        for (let i = 1; i < xySorted.length; i++) gaps.push((xySorted[i].date - xySorted[i - 1].date) / 86400000);
+        const meanGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+        const sdGap = Math.sqrt(gaps.reduce((s, g) => s + (g - meanGap) ** 2, 0) / gaps.length);
+        const lastDate = xySorted[xySorted.length - 1].date;
+        const predDate = new Date(lastDate.getTime() + Math.max(1, meanGap) * 86400000);
+
+        const horaCount = {};
+        xySorted.forEach(p => {
+            const hora = p.report.horaHallazgo;
+            if (!hora) return;
+            const h = parseInt(hora.split(':')[0]);
+            if (isNaN(h)) return;
+            horaCount[h] = (horaCount[h] || 0) + 1;
+        });
+        const horaTopEntry = Object.entries(horaCount).sort((a, b) => b[1] - a[1])[0];
+        const horaIni = horaTopEntry ? parseInt(horaTopEntry[0]) : null;
+        const ventana = horaIni !== null ? `${String(horaIni).padStart(2, '0')}:00 - ${String((horaIni + 3) % 24).padStart(2, '0')}:00` : 'SIN PATRON DEFINIDO';
+
+        const cv = meanGap > 0 ? sdGap / meanGap : 2;
+        let confianza = 'BAJA';
+        if (n >= 6 && cv < 0.6) confianza = 'ALTA';
+        else if (n >= 4 && cv < 1) confianza = 'MEDIA';
+
+        return { predLat: predLatLng.lat, predLng: predLatLng.lng, predX, predY, predDate, ventana, confianza, trajectory: last, meanGapDays: meanGap };
+    }
+
+    // ---------- NIVEL DE RIESGO GLOBAL ----------
+    function tacComputeRisk(points, profile) {
+        const n = points.length;
+        const now = new Date();
+        const last30 = points.filter(p => p.date && (now - p.date) <= 30 * 86400000).length;
+        const prev30 = points.filter(p => p.date && (now - p.date) > 30 * 86400000 && (now - p.date) <= 60 * 86400000).length;
+        const trendRatio = prev30 > 0 ? last30 / prev30 : (last30 > 0 ? 2 : 1);
+        const critWeights = { CRITICO: 1, ALTO: 0.7, MEDIO: 0.4, BAJO: 0.2 };
+        const critScore = points.reduce((s, p) => s + (critWeights[p.report.nivelCriticidad] || 0.3), 0) / n;
+        const volumeScore = Math.min(1, Math.log(n + 1) / Math.log(20));
+        const trendScore = Math.min(1, trendRatio / 2.5);
+        const score = Math.round(Math.min(100, Math.max(0, volumeScore * 25 + critScore * 40 + trendScore * 35)));
+        let nivel = 'BAJO', color = '#34d399';
+        if (score >= 70) { nivel = 'ALTO'; color = '#f87171'; }
+        else if (score >= 40) { nivel = 'MEDIO'; color = '#fbbf24'; }
+        return { score, nivel, color };
+    }
+
+    // ---------- RENDER: utilidades de canvas ----------
+    function tacSetupCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const w = Math.max(1, rect.width), h = Math.max(1, rect.height);
+        canvas.width = Math.max(1, w * dpr);
+        canvas.height = Math.max(1, h * dpr);
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, w, h };
+    }
+
+    function tacFitScale(points, w, h, paddingMeters) {
+        const xs = points.map(p => p.x), ys = points.map(p => p.y);
+        let minX = Math.min(...xs) - paddingMeters, maxX = Math.max(...xs) + paddingMeters;
+        let minY = Math.min(...ys) - paddingMeters, maxY = Math.max(...ys) + paddingMeters;
+        if (maxX - minX < 40) { minX -= 40; maxX += 40; }
+        if (maxY - minY < 40) { minY -= 40; maxY += 40; }
+        const scale = Math.min((w - 30) / (maxX - minX), (h - 30) / (maxY - minY));
+        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        function project(x, y) { return { px: w / 2 + (x - cx) * scale, py: h / 2 - (y - cy) * scale }; }
+        return { project, scale };
+    }
+
+    function tacBoundsForRings(xy, center, maxRadius) {
+        return xy.concat([
+            { x: center.x - maxRadius, y: center.y - maxRadius },
+            { x: center.x + maxRadius, y: center.y + maxRadius },
+            { x: center.x - maxRadius, y: center.y + maxRadius },
+            { x: center.x + maxRadius, y: center.y - maxRadius }
+        ]);
+    }
+
+    function tacDrawGrid(ctx, w, h) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(56,189,248,0.10)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 26) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y < h; y += 26) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+        ctx.restore();
+    }
+
+    function tacDrawCompassScale(ctx, w, h, scale) {
+        ctx.save();
+        ctx.translate(w - 22, 22);
+        ctx.fillStyle = '#7dd3fc';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('N', 0, -10);
+        ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(-5, 6); ctx.lineTo(5, 6); ctx.closePath(); ctx.fill();
+        ctx.restore();
+        const barMeters = 100;
+        const barPx = barMeters * scale;
+        ctx.save();
+        ctx.strokeStyle = '#7dd3fc'; ctx.fillStyle = '#7dd3fc'; ctx.lineWidth = 2;
+        const x0 = 12, y0 = h - 12;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + barPx, y0); ctx.stroke();
+        ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(barMeters + ' m', x0, y0 - 4);
+        ctx.restore();
+    }
+
+    function tacColorForTipo(tipo) {
+        const t = (tipo || '').toUpperCase();
+        if (t.includes('ROBO')) return '#f87171';
+        if (t.includes('HURTO')) return '#fb923c';
+        if (t.includes('ACCESO') || t.includes('INTRUSION')) return '#a78bfa';
+        if (t.includes('VIAL') || t.includes('ACCIDENTE')) return '#facc15';
+        return '#38bdf8';
+    }
+
+    function tacRenderGottlieb(canvas, xy, center, sd) {
+        const { ctx, w, h } = tacSetupCanvas(canvas);
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#060d16'; ctx.fillRect(0, 0, w, h);
+        tacDrawGrid(ctx, w, h);
+        const bounds = tacBoundsForRings(xy, center, sd * 3.15);
+        const { project, scale } = tacFitScale(bounds, w, h, Math.max(20, sd * 0.12));
+        const c = project(center.x, center.y);
+        [{ r: sd * 3, stroke: 'rgba(248,113,113,0.85)', fill: 'rgba(248,113,113,0.05)' },
+         { r: sd * 2, stroke: 'rgba(251,191,36,0.9)', fill: 'rgba(251,191,36,0.06)' },
+         { r: sd * 1, stroke: 'rgba(52,211,153,0.95)', fill: 'rgba(52,211,153,0.08)' }
+        ].forEach(ring => {
+            ctx.beginPath(); ctx.arc(c.px, c.py, ring.r * scale, 0, Math.PI * 2);
+            ctx.fillStyle = ring.fill; ctx.fill();
+            ctx.strokeStyle = ring.stroke; ctx.lineWidth = 1.6; ctx.stroke();
+        });
+        ctx.save();
+        ctx.strokeStyle = 'rgba(125,211,252,0.2)'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(0, c.py); ctx.lineTo(w, c.py); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(c.px, 0); ctx.lineTo(c.px, h); ctx.stroke();
+        ctx.restore();
+        xy.forEach(p => {
+            const pt = project(p.x, p.y);
+            ctx.beginPath(); ctx.arc(pt.px, pt.py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = tacColorForTipo(p.report.tipoEvento); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+        });
+        ctx.beginPath(); ctx.arc(c.px, c.py, 5, 0, Math.PI * 2); ctx.fillStyle = '#38bdf8'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        tacDrawCompassScale(ctx, w, h, scale);
+    }
+
+    function tacRenderSpider(canvas, xy, center, sd) {
+        const { ctx, w, h } = tacSetupCanvas(canvas);
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#060d16'; ctx.fillRect(0, 0, w, h);
+        tacDrawGrid(ctx, w, h);
+        const bounds = tacBoundsForRings(xy, center, sd * 1.1);
+        const { project, scale } = tacFitScale(bounds, w, h, Math.max(20, sd * 0.15));
+        const c = project(center.x, center.y);
+        ctx.save();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = 'rgba(56,189,248,0.4)';
+        ctx.beginPath(); ctx.arc(c.px, c.py, sd * scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        xy.forEach(p => {
+            const pt = project(p.x, p.y);
+            ctx.beginPath(); ctx.moveTo(c.px, c.py); ctx.lineTo(pt.px, pt.py);
+            ctx.strokeStyle = 'rgba(56,189,248,0.35)'; ctx.lineWidth = 1; ctx.stroke();
+            ctx.beginPath(); ctx.arc(pt.px, pt.py, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = tacColorForTipo(p.report.tipoEvento); ctx.fill();
+        });
+        ctx.beginPath(); ctx.arc(c.px, c.py, 6, 0, Math.PI * 2); ctx.fillStyle = '#38bdf8'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.font = 'bold 9px sans-serif'; ctx.fillStyle = '#7dd3fc'; ctx.textAlign = 'center';
+        ctx.fillText('ANCLA', c.px, c.py - 11);
+    }
+
+    function tacRenderMSD(canvas, xy, center, sd, prediction) {
+        const { ctx, w, h } = tacSetupCanvas(canvas);
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#060d16'; ctx.fillRect(0, 0, w, h);
+        tacDrawGrid(ctx, w, h);
+        if (!prediction) {
+            ctx.fillStyle = '#64748b'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('DATOS INSUFICIENTES PARA PROYECTAR TRAYECTORIA', w / 2, h / 2);
+            return;
+        }
+        const allPts = xy.concat([{ x: prediction.predX, y: prediction.predY }]);
+        const { project, scale } = tacFitScale(allPts, w, h, Math.max(25, sd * 0.6));
+        const traj = prediction.trajectory;
+        const predPt = project(prediction.predX, prediction.predY);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(192,132,252,0.7)'; ctx.setLineDash([5, 3]); ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        traj.forEach((p, i) => { const pt = project(p.x, p.y); if (i === 0) ctx.moveTo(pt.px, pt.py); else ctx.lineTo(pt.px, pt.py); });
+        ctx.lineTo(predPt.px, predPt.py);
+        ctx.stroke();
+        ctx.restore();
+        traj.forEach((p, i) => {
+            const pt = project(p.x, p.y);
+            ctx.beginPath(); ctx.arc(pt.px, pt.py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#c084fc'; ctx.fill();
+            ctx.fillStyle = '#e9d5ff'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('t' + (i + 1), pt.px, pt.py - 8);
+        });
+        ctx.save();
+        ctx.strokeStyle = 'rgba(248,113,113,0.5)';
+        ctx.beginPath(); ctx.arc(predPt.px, predPt.py, sd * 0.5 * scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        ctx.beginPath(); ctx.arc(predPt.px, predPt.py, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#f87171'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.font = 'bold 9px sans-serif'; ctx.fillStyle = '#fca5a5'; ctx.textAlign = 'center';
+        ctx.fillText('PROXIMO?', predPt.px, predPt.py - 11);
+    }
+
+    function tacRenderHeatmap(canvas, xy, sd) {
+        const { ctx, w, h } = tacSetupCanvas(canvas);
+        ctx.clearRect(0, 0, w, h);
+        const { project } = tacFitScale(xy, w, h, Math.max(30, sd * 1.4));
+        const off = document.createElement('canvas');
+        off.width = w; off.height = h;
+        const octx = off.getContext('2d');
+        const radius = Math.max(26, Math.min(w, h) * 0.16);
+        xy.forEach(p => {
+            const pt = project(p.x, p.y);
+            const grad = octx.createRadialGradient(pt.px, pt.py, 0, pt.px, pt.py, radius);
+            grad.addColorStop(0, 'rgba(255,255,255,0.55)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            octx.fillStyle = grad;
+            octx.beginPath(); octx.arc(pt.px, pt.py, radius, 0, Math.PI * 2); octx.fill();
+        });
+        const imgData = octx.getImageData(0, 0, w, h);
+        const stops = [[0.00, [15, 30, 45]], [0.25, [30, 58, 95]], [0.45, [52, 211, 153]], [0.70, [251, 191, 36]], [1.00, [248, 113, 113]]];
+        function colorAt(t) {
+            for (let i = 0; i < stops.length - 1; i++) {
+                if (t >= stops[i][0] && t <= stops[i + 1][0]) {
+                    const span = stops[i + 1][0] - stops[i][0];
+                    const f = span > 0 ? (t - stops[i][0]) / span : 0;
+                    const c0 = stops[i][1], c1 = stops[i + 1][1];
+                    return [c0[0] + (c1[0] - c0[0]) * f, c0[1] + (c1[1] - c0[1]) * f, c0[2] + (c1[2] - c0[2]) * f];
+                }
+            }
+            return stops[stops.length - 1][1];
+        }
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const a = d[i + 3] / 255;
+            if (a <= 0.02) { d[i] = 6; d[i + 1] = 13; d[i + 2] = 22; d[i + 3] = 30; continue; }
+            const [r, g, b] = colorAt(Math.min(1, a));
+            d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = Math.round(Math.min(1, a * 1.3) * 255);
+        }
+        ctx.putImageData(imgData, 0, 0);
+        xy.forEach(p => {
+            const pt = project(p.x, p.y);
+            ctx.beginPath(); ctx.arc(pt.px, pt.py, 2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+        });
+    }
+
+    function tacRenderGauge(canvas, score, color) {
+        const { ctx, w, h } = tacSetupCanvas(canvas);
+        ctx.clearRect(0, 0, w, h);
+        const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 6;
+        const startAngle = Math.PI * 0.75, endAngle = Math.PI * 2.25;
+        ctx.lineWidth = 9; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, endAngle);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.stroke();
+        const frac = Math.max(0, Math.min(1, score / 100));
+        ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, startAngle + (endAngle - startAngle) * frac);
+        ctx.strokeStyle = color; ctx.stroke();
+    }
+
+    // ---------- TEXTOS: recomendaciones y resumen ----------
+    function tacGenerateRecommendations(profile, prediction, risk) {
+        const recs = [];
+        recs.push(`Priorizar el patrullaje dentro de las zonas 1σ y 2σ alrededor del punto de anclaje (radio aproximado ${Math.round(profile.sd)} - ${Math.round(profile.sd * 2)} m).`);
+        recs.push(`Reforzar rondas y presencia visible durante el bloque de mayor incidencia: ${profile.patronHorario}.`);
+        recs.push(`Disponer vigilancia movil en las rutas de aproximacion y salida hacia el punto de anclaje (movilidad estimada: ${profile.movilidad}).`);
+        if (prediction) recs.push(`Monitorear con prioridad la zona proyectada para el proximo evento; ventana estimada ${prediction.ventana} (confianza ${prediction.confianza}).`);
+        recs.push(`Reforzar controles fisicos, iluminacion y CCTV sobre el tipo de evento predominante: ${profile.tipoTop}.`);
+        if (risk.nivel === 'ALTO') recs.push('Escalar el nivel de respuesta: notificar a Jefatura de Seguridad y evaluar refuerzo temporal de personal en la zona priorizada.');
+        recs.push('Actualizar este analisis cada vez que se registre un nuevo RIS georreferenciado para mantener la prediccion vigente.');
+        return recs;
+    }
+
+    function tacGenerateSummary(profile, prediction, risk, n) {
+        let txt = `El analisis integrado de Gottlieb, Spider Mean y MSD sobre ${n} incidente${n === 1 ? '' : 's'} georreferenciado${n === 1 ? '' : 's'} identifica una concentracion alrededor del punto de anclaje, con un radio de dispersion (1σ) aproximado de ${Math.round(profile.sd)} metros. `;
+        txt += `Se observa mayor recurrencia en el bloque ${profile.patronHorario.toLowerCase()}, con movilidad estimada de tipo ${profile.movilidad.toLowerCase()} y un nivel de planificacion ${profile.planificacion.toLowerCase()}. `;
+        if (prediction) txt += `El modelo MSD proyecta el proximo evento dentro de la ventana ${prediction.ventana}, con un nivel de confianza ${prediction.confianza.toLowerCase()} segun la regularidad historica de los intervalos. `;
+        txt += `El nivel de riesgo global calculado para el ambito analizado es ${risk.nivel}. Se recomienda enfocar el patrullaje y los recursos de seguridad en las zonas 1σ-2σ y en la ventana temporal critica para reducir la probabilidad de reincidencia.`;
+        return txt;
+    }
+
+    // ---------- RENDER: paneles de texto/tabla/KPI ----------
+    function tacRenderIncidentTable(points) {
+        const el = document.getElementById('tacIncidentTable');
+        if (!el) return;
+        if (points.length === 0) { el.innerHTML = '<p class="text-slate-500 p-2">SIN INCIDENTES EN EL FILTRO ACTUAL</p>'; return; }
+        el.innerHTML = points.slice().reverse().map(p => {
+            const r = p.report;
+            const color = tacColorForTipo(r.tipoEvento);
+            const fecha = p.date ? p.date.toLocaleDateString('es-PE') : (r.fechaHallazgo || '--');
+            const hora = r.horaHallazgo || (p.date ? p.date.toTimeString().slice(0, 5) : '--');
+            return `<div class="flex items-center gap-2 py-1.5 border-b border-slate-700/40">
+                <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
+                <div class="flex-1 min-w-0">
+                    <div class="text-slate-200 truncate">${fecha} ${hora}</div>
+                    <div class="text-slate-500 truncate normal-case">${(r.tipoEvento || 'N/D')}${r.geoReferencia ? ' · ' + r.geoReferencia : ''}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function tacRenderKpis(profile, prediction, risk, n) {
+        const el = document.getElementById('tacKpiRow');
+        if (!el) return;
+        const cards = [
+            { label: 'INCIDENTES ANALIZADOS', value: n, icon: 'fa-list-check', color: 'from-slate-700 to-slate-800' },
+            { label: 'RADIO 1σ (m)', value: Math.round(profile.sd), icon: 'fa-bullseye', color: 'from-emerald-700 to-emerald-900' },
+            { label: 'MOVILIDAD ESTIMADA', value: profile.movilidad, icon: 'fa-route', color: 'from-sky-700 to-sky-900', small: true },
+            { label: 'CONFIANZA PREDICCION', value: prediction ? prediction.confianza : 'N/A', icon: 'fa-bolt', color: 'from-amber-700 to-amber-900' },
+            { label: 'RIESGO GLOBAL', value: risk.nivel, icon: 'fa-triangle-exclamation', color: 'from-red-700 to-red-900' }
+        ];
+        el.innerHTML = cards.map(c => `
+            <div class="rounded-xl p-3 text-white bg-gradient-to-br ${c.color} border border-white/10">
+                <div class="mb-1"><i class="fas ${c.icon} text-xs opacity-70"></i></div>
+                <div class="${c.small ? 'text-[11px]' : 'text-lg'} font-black tac-mono leading-tight">${c.value}</div>
+                <div class="text-[9px] opacity-70 uppercase tracking-wide mt-0.5">${c.label}</div>
+            </div>`).join('');
+    }
+
+    function tacRenderProfile(profile) {
+        const el = document.getElementById('tacProfile');
+        if (!el) return;
+        const anchorTxt = tacLastResult ? `${tacLastResult.anchorLatLng.lat.toFixed(5)}, ${tacLastResult.anchorLatLng.lng.toFixed(5)}` : '--';
+        const anchorMapsLink = tacLastResult ? `<a href="${tacGoogleMapsUrl(tacLastResult.anchorLatLng.lat, tacLastResult.anchorLatLng.lng)}" target="_blank" rel="noopener" class="ml-1.5 text-cyan-400 hover:text-cyan-300" title="Ver punto de anclaje en Google Maps (satelite)"><i class="fas fa-map-marked-alt"></i></a>` : '';
+        el.innerHTML = `
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Movilidad:</span><span class="text-slate-200 font-semibold text-right">${profile.movilidad}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Patron horario:</span><span class="text-slate-200 font-semibold text-right">${profile.patronHorario}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Zona de confort:</span><span class="text-slate-200 font-semibold text-right">${Math.round(profile.comfortZoneMin)} - ${Math.round(profile.comfortZoneMax)} m</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Modus operandi:</span><span class="text-slate-200 font-semibold text-right">${profile.tipoTop}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Planificacion:</span><span class="text-slate-200 font-semibold text-right">${profile.planificacion}</span></div>
+            <div class="flex justify-between gap-2 items-center"><span class="text-slate-500">Punto de anclaje:</span><span class="text-slate-200 font-semibold tac-mono text-right flex items-center">${anchorTxt}${anchorMapsLink}</span></div>
+            <p class="text-[9px] text-slate-500 pt-1 border-t border-slate-700/50 mt-1 normal-case"><i class="fas fa-circle-info mr-1"></i>Perfil basado solo en patrones de lugar/fecha/hora. No infiere caracteristicas personales del autor.</p>`;
+    }
+
+    function tacRenderPrediction(prediction) {
+        const el = document.getElementById('tacPrediction');
+        if (!el) return;
+        if (!prediction) {
+            el.innerHTML = '<p class="text-slate-500 normal-case">Se requieren al menos 2 incidentes con fecha valida para proyectar una tendencia.</p>';
+            return;
+        }
+        const confColor = prediction.confianza === 'ALTA' ? 'text-emerald-400' : (prediction.confianza === 'MEDIA' ? 'text-amber-400' : 'text-red-400');
+        const predMapsLink = `<a href="${tacGoogleMapsUrl(prediction.predLat, prediction.predLng)}" target="_blank" rel="noopener" class="ml-1.5 text-cyan-400 hover:text-cyan-300" title="Ver ubicacion proyectada en Google Maps (satelite)"><i class="fas fa-map-marked-alt"></i></a>`;
+        el.innerHTML = `
+            <div class="flex justify-between gap-2 items-center"><span class="text-slate-500">Ubicacion probable:</span><span class="text-slate-200 font-semibold tac-mono text-right flex items-center">${prediction.predLat.toFixed(5)}, ${prediction.predLng.toFixed(5)}${predMapsLink}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Fecha estimada:</span><span class="text-slate-200 font-semibold text-right">${prediction.predDate.toLocaleDateString('es-PE')}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Ventana horaria:</span><span class="text-slate-200 font-semibold text-right">${prediction.ventana}</span></div>
+            <div class="flex justify-between gap-2"><span class="text-slate-500">Confianza:</span><span class="font-bold text-right ${confColor}">${prediction.confianza}</span></div>`;
+    }
+
+    function tacRenderRecommendations(list) {
+        const el = document.getElementById('tacRecomendaciones');
+        if (!el) return;
+        el.innerHTML = list.map(r => `<li class="tac-recommend-item rounded-lg px-2.5 py-2 text-slate-200 normal-case"><i class="fas fa-check-circle text-emerald-400 mr-1.5"></i>${r}</li>`).join('');
+    }
+
+    function tacUpdateNavBadge(active) {
+        const badge = document.getElementById('tacticoBadge');
+        if (badge) badge.classList.toggle('hidden', !active);
+    }
+
+    function tacCheckBadgeOnInit() {
+        const n = (reports || []).filter(tacIsGeo).length;
+        tacUpdateNavBadge(n >= TAC_MIN_SAMPLE);
+    }
+
+    // ---------- ORQUESTADOR PRINCIPAL ----------
+    function recalcTactico() {
+        tacPopulateFilters();
+        const points = tacGetGeoReports();
+        const n = points.length;
+        const totalGeo = tacGetSourceReports().filter(tacIsGeo).length;
+        const statusEl = document.getElementById('tacActivationStatus');
+        if (statusEl) {
+            statusEl.innerHTML = n >= TAC_MIN_SAMPLE
+                ? `<span class="text-emerald-400"><i class="fas fa-circle-check mr-1"></i>MODULO ACTIVO</span> — ${n} incidentes georreferenciados en el filtro actual (${totalGeo} en total).`
+                : `<span class="text-amber-400"><i class="fas fa-circle-exclamation mr-1"></i>EN ESPERA DE DATOS</span> — ${n}/${TAC_MIN_SAMPLE} incidentes georreferenciados necesarios.`;
+        }
+
+        tacUpdateNavBadge(n >= TAC_MIN_SAMPLE);
+        const emptyEl = document.getElementById('tacEmptyState');
+        const mainEl = document.getElementById('tacMainContent');
+
+        if (n < TAC_MIN_SAMPLE) {
+            if (emptyEl) emptyEl.classList.remove('hidden');
+            if (mainEl) mainEl.classList.add('hidden');
+            const msgEl = document.getElementById('tacEmptyMsg');
+            if (msgEl) msgEl.textContent = `El modulo necesita al menos ${TAC_MIN_SAMPLE} incidentes georreferenciados (tiene ${n}) para calcular zonas de patrullaje, perfil y prediccion de forma confiable.`;
+            return;
+        }
+        if (emptyEl) emptyEl.classList.add('hidden');
+        if (mainEl) mainEl.classList.remove('hidden');
+
+        const proj = tacProjectMeters(points);
+        const center = tacMeanCenter(proj.xy);
+        const sd = Math.max(15, tacStandardDistance(proj.xy, center));
+        const anchorLatLng = tacMetersToLatLng(center.x, center.y, proj);
+        const profile = tacBuildProfile(proj.xy, center, sd, points);
+        const prediction = tacBuildPrediction(points, proj, center, sd);
+        const risk = tacComputeRisk(points, profile);
+
+        tacLastResult = { proj, center, sd, anchorLatLng, profile, prediction, risk, points };
+
+        tacRenderKpis(profile, prediction, risk, n);
+        tacRenderIncidentTable(points);
+
+        const gCanvas = document.getElementById('tacGottliebCanvas');
+        if (gCanvas) tacRenderGottlieb(gCanvas, proj.xy, center, sd);
+        const sCanvas = document.getElementById('tacSpiderCanvas');
+        if (sCanvas) tacRenderSpider(sCanvas, proj.xy, center, sd);
+        const mCanvas = document.getElementById('tacMSDCanvas');
+        if (mCanvas) tacRenderMSD(mCanvas, proj.xy, center, sd, prediction);
+        const hCanvas = document.getElementById('tacHeatmapCanvas');
+        if (hCanvas) tacRenderHeatmap(hCanvas, proj.xy, sd);
+        const gaugeCanvas = document.getElementById('tacGaugeCanvas');
+        if (gaugeCanvas) tacRenderGauge(gaugeCanvas, risk.score, risk.color);
+        const gaugeLabel = document.getElementById('tacGaugeLabel');
+        const gaugeScore = document.getElementById('tacGaugeScore');
+        if (gaugeLabel) { gaugeLabel.textContent = risk.nivel; gaugeLabel.style.color = risk.color; gaugeLabel.style.textShadow = `0 0 10px ${risk.color}`; }
+        if (gaugeScore) gaugeScore.textContent = risk.score + '/100';
+
+        tacRenderProfile(profile);
+        tacRenderPrediction(prediction);
+        tacRenderRecommendations(tacGenerateRecommendations(profile, prediction, risk));
+        const resumenEl = document.getElementById('tacResumenEjecutivo');
+        if (resumenEl) resumenEl.textContent = tacGenerateSummary(profile, prediction, risk, n);
+    }
+
+    // ---------- IA: CONFIGURACION MULTI-PROVEEDOR (GEMINI GRATIS / CLAUDE / NINGUNO) ----------
+    const AI_CONFIG_KEY = 'ris_ai_config_v1';
+    let aiConfig = { provider: 'gemini', model: 'gemini-2.5-flash', apiKey: '', baseUrl: '' };
+
+    const AI_MODELS = {
+        gemini: [
+            { value: 'gemini-2.5-flash', label: 'GEMINI 2.5 FLASH (RECOMENDADO)' },
+            { value: 'gemini-2.5-flash-lite', label: 'GEMINI 2.5 FLASH-LITE (MAS CUOTA DIARIA)' }
+        ],
+        moonshot: [
+            { value: 'kimi-k2.6', label: 'KIMI K2.6 (RECOMENDADO)' },
+            { value: 'kimi-k2.5', label: 'KIMI K2.5 (MAS ECONOMICO)' }
+        ],
+        anthropic: [
+            { value: 'claude-sonnet-4-6', label: 'CLAUDE SONNET 4.6' }
+        ],
+        none: []
+    };
+
+    function loadAiConfig() {
+        try {
+            const raw = localStorage.getItem(AI_CONFIG_KEY);
+            if (raw) aiConfig = Object.assign({}, aiConfig, JSON.parse(raw));
+        } catch (e) { console.error('loadAiConfig error', e); }
+    }
+
+    function saveAiConfigToStorage() {
+        try { localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(aiConfig)); } catch (e) { console.error('saveAiConfigToStorage error', e); }
+    }
+
+    function renderAiSettingsForm() {
+        const providerSel = document.getElementById('aiProvider');
+        const modelSel = document.getElementById('aiModel');
+        const keyInput = document.getElementById('aiApiKey');
+        const keyWrap = document.getElementById('aiKeyWrap');
+        const baseUrlWrap = document.getElementById('aiBaseUrlWrap');
+        const baseUrlInput = document.getElementById('aiBaseUrl');
+        const statusEl = document.getElementById('aiConfigStatus');
+        const warnEl = document.getElementById('aiProviderWarning');
+        if (!providerSel || !modelSel) return;
+        providerSel.value = aiConfig.provider;
+        const models = AI_MODELS[aiConfig.provider] || [];
+        modelSel.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join('');
+        if (models.length) modelSel.value = models.some(m => m.value === aiConfig.model) ? aiConfig.model : models[0].value;
+        if (keyInput) keyInput.value = aiConfig.apiKey || '';
+        if (keyWrap) keyWrap.classList.toggle('hidden', aiConfig.provider !== 'gemini' && aiConfig.provider !== 'moonshot');
+        if (baseUrlWrap) baseUrlWrap.classList.toggle('hidden', aiConfig.provider !== 'moonshot');
+        if (baseUrlInput) baseUrlInput.value = aiConfig.baseUrl || (aiConfig.provider === 'moonshot' ? 'https://api.moonshot.ai/v1' : '');
+        if (warnEl) {
+            if (aiConfig.provider === 'moonshot') {
+                warnEl.classList.remove('hidden');
+                warnEl.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i> Moonshot/Kimi indica que su API es para uso desde servidor; las llamadas directas desde el navegador pueden ser bloqueadas (CORS) o requerir saldo en la cuenta. Si falla, use Google Gemini (funciona desde el navegador y es gratis).';
+            } else {
+                warnEl.classList.add('hidden');
+            }
+        }
+        if (statusEl) {
+            if (aiConfig.provider === 'none') {
+                statusEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500';
+                statusEl.innerHTML = '<i class="fas fa-circle mr-1"></i> DESACTIVADO';
+            } else if ((aiConfig.provider === 'gemini' || aiConfig.provider === 'moonshot') && aiConfig.apiKey) {
+                statusEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700';
+                statusEl.innerHTML = '<i class="fas fa-circle-check mr-1"></i> ' + (aiConfig.provider === 'gemini' ? 'GEMINI CONFIGURADO' : 'MOONSHOT/KIMI CONFIGURADO');
+            } else if (aiConfig.provider === 'anthropic') {
+                statusEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-700';
+                statusEl.innerHTML = '<i class="fas fa-circle-info mr-1"></i> CLAUDE (SOLO VISTA PREVIA)';
+            } else {
+                statusEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700';
+                statusEl.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i> FALTA CLAVE API';
+            }
+        }
+    }
+
+    function onAiProviderChange() {
+        const providerSel = document.getElementById('aiProvider');
+        if (!providerSel) return;
+        aiConfig.provider = providerSel.value;
+        const models = AI_MODELS[aiConfig.provider] || [];
+        aiConfig.model = models.length ? models[0].value : '';
+        renderAiSettingsForm();
+    }
+
+    function guardarConfigIA() {
+        const providerSel = document.getElementById('aiProvider');
+        const modelSel = document.getElementById('aiModel');
+        const keyInput = document.getElementById('aiApiKey');
+        const baseUrlInput = document.getElementById('aiBaseUrl');
+        aiConfig.provider = providerSel?.value || 'none';
+        aiConfig.model = modelSel?.value || '';
+        aiConfig.apiKey = (keyInput?.value || '').trim();
+        aiConfig.baseUrl = (baseUrlInput?.value || '').trim();
+        saveAiConfigToStorage();
+        renderAiSettingsForm();
+        const out = document.getElementById('aiTestResult');
+        if (out) out.innerHTML = '';
+        showToast('Configuracion de IA guardada en este dispositivo', 'success');
+    }
+
+    async function probarConexionIA() {
+        guardarConfigIA();
+        const out = document.getElementById('aiTestResult');
+        if (out) out.innerHTML = '<span class="text-gray-500"><i class="fas fa-spinner fa-spin mr-1"></i> Probando conexion...</span>';
+        try {
+            const reply = await tacCallAI([{ role: 'user', content: 'Responde unicamente con la palabra: OK' }], 'Eres un servicio de verificacion de conectividad. Responde unicamente OK.');
+            if (out) out.innerHTML = `<span class="text-emerald-600 font-semibold"><i class="fas fa-circle-check mr-1"></i> Conexion exitosa. Respuesta de prueba: "${tacEscapeHtml(reply).slice(0, 80)}"</span>`;
+            showToast('Conexion con la IA exitosa', 'success');
+        } catch (err) {
+            console.error('probarConexionIA error', err);
+            const msg = err && err.message ? err.message : 'Error desconocido';
+            if (out) out.innerHTML = `<span class="text-red-600 font-semibold"><i class="fas fa-triangle-exclamation mr-1"></i> ${tacEscapeHtml(msg)}</span>`;
+            showToast('No se pudo conectar con la IA', 'error');
+        }
+    }
+
+    // ---------- IA: LLAMADAS A LOS PROVEEDORES ----------
+    async function tacCallGeminiAPI(messages, systemPrompt) {
+        if (!aiConfig.apiKey) throw new Error('Falta configurar la clave API gratuita de Gemini.');
+        const model = aiConfig.model || 'gemini-2.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(aiConfig.apiKey)}`;
+        const contents = messages.map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }]
+        }));
+        const body = { contents, generationConfig: { maxOutputTokens: 1000, temperature: 0.6 } };
+        if (systemPrompt) body.systemInstruction = { parts: [{ text: systemPrompt }] };
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message || ('Error de la API de Gemini (HTTP ' + response.status + ')'));
+        const candidate = (data.candidates || [])[0];
+        if (!candidate) throw new Error('Gemini no devolvio resultados (posible bloqueo de seguridad o cuota diaria agotada).');
+        const text = (candidate.content?.parts || []).map(p => p.text || '').join('\n').trim();
+        return text || 'La IA no devolvio una respuesta de texto.';
+    }
+
+    async function tacCallClaudeAPI(messages, systemPrompt) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1000,
+                system: systemPrompt,
+                messages: messages
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message || 'Error de la API de Claude');
+        const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+        return text || 'La IA no devolvio una respuesta de texto.';
+    }
+
+    function tacNormalizeMessages(messages) {
+        const out = [];
+        messages.forEach(m => {
+            if (out.length && out[out.length - 1].role === m.role) {
+                out[out.length - 1].content += '\n' + m.content;
+            } else {
+                out.push({ role: m.role, content: m.content });
+            }
+        });
+        return out;
+    }
+
+    async function tacCallMoonshotAPI(messages, systemPrompt) {
+        if (!aiConfig.apiKey) throw new Error('Falta configurar la clave API de Moonshot/Kimi.');
+        const base = (aiConfig.baseUrl || 'https://api.moonshot.ai/v1').trim().replace(/\/+$/, '');
+        const model = aiConfig.model || 'kimi-k2.6';
+        const oaiMessages = [];
+        if (systemPrompt) oaiMessages.push({ role: 'system', content: systemPrompt });
+        messages.forEach(m => oaiMessages.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
+        let response;
+        try {
+            response = await fetch(base + '/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey },
+                body: JSON.stringify({ model, messages: oaiMessages, max_tokens: 1000, temperature: 0.6 })
+            });
+        } catch (networkErr) {
+            throw new Error('No se pudo contactar a Moonshot/Kimi (posible bloqueo CORS del proveedor, ya que su API esta pensada para uso desde servidor, no desde el navegador).');
+        }
+        const data = await response.json();
+        if (data.error) throw new Error((data.error.message || JSON.stringify(data.error)) + ' (HTTP ' + response.status + ')');
+        const choice = (data.choices || [])[0];
+        if (!choice) throw new Error('Moonshot/Kimi no devolvio resultados (HTTP ' + response.status + ').');
+        const text = (choice.message && choice.message.content) || '';
+        return text.trim() || 'La IA no devolvio una respuesta de texto.';
+    }
+
+    async function tacCallAI(messages, systemPrompt) {
+        if (!aiConfig || aiConfig.provider === 'none') {
+            throw new Error('La IA esta desactivada. Actívela en PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL.');
+        }
+        const normalized = tacNormalizeMessages(messages);
+        if (aiConfig.provider === 'gemini') return await tacCallGeminiAPI(normalized, systemPrompt);
+        if (aiConfig.provider === 'moonshot') return await tacCallMoonshotAPI(normalized, systemPrompt);
+        if (aiConfig.provider === 'anthropic') return await tacCallClaudeAPI(normalized, systemPrompt);
+        throw new Error('Proveedor de IA no reconocido.');
+    }
+
+    // ---------- IA: ANALISIS AVANZADO Y CONSULTA TACTICA ----------
+    const TAC_AI_SYSTEM = 'Eres un analista senior de seguridad patrimonial y analisis criminal tactico-geografico, experto en las metodologias Gottlieb (zonas de patrullaje por desviacion estandar), Spider Mean (perfilacion conductual y punto de anclaje) y MSD (prediccion temporal de eventos). Recibiras datos reales de un sistema RIS (Reporte de Incidentes de Seguridad) ya procesados estadisticamente. Tu tarea es interpretarlos y dar recomendaciones tacticas claras, accionables y profesionales en español, dirigidas a un Jefe de Seguridad. Reglas estrictas: nunca inventes ni sugieras caracteristicas personales (genero, edad, etnia, apariencia, etc.) de presuntos infractores; basa tus respuestas unicamente en patrones de lugar, fecha, hora, tipo de evento y criticidad; se conciso y practico, usa viñetas cuando ayude a la lectura; si los datos son insuficientes para una afirmacion, dilo explicitamente en vez de especular.';
+
+    let tacChatHistory = [];
+    let tacChatLoading = false;
+
+    function tacEscapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = String(str == null ? '' : str);
+        return div.innerHTML;
+    }
+
+    function tacAIErrorHint() {
+        if (!aiConfig || aiConfig.provider === 'none') {
+            return 'Active un proveedor de IA en <button onclick="app.navigate(\'admin\')" class="underline font-semibold">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button> (recomendado: Google Gemini, es gratis).';
+        }
+        if (aiConfig.provider === 'gemini') {
+            return aiConfig.apiKey
+                ? 'Verifique su clave de Gemini, su conexion a internet, o que no haya superado la cuota gratuita diaria.'
+                : 'Configure su clave gratuita de Gemini en <button onclick="app.navigate(\'admin\')" class="underline font-semibold">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button>.';
+        }
+        if (aiConfig.provider === 'moonshot') {
+            return 'Moonshot/Kimi puede bloquear llamadas directas desde el navegador (CORS) o requerir saldo en la cuenta. Si persiste, cambie a Google Gemini (gratis y funciona desde el navegador) en <button onclick="app.navigate(\'admin\')" class="underline font-semibold">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button>.';
+        }
+        return 'Claude solo funciona dentro de la vista previa de Claude. Para usar la IA fuera de Claude, cambie el proveedor a Google Gemini (gratis) en <button onclick="app.navigate(\'admin\')" class="underline font-semibold">PANEL DE CONTROL → INTELIGENCIA ARTIFICIAL</button>.';
+    }
+
+    function tacBuildAIContext() {
+        if (!tacLastResult) return null;
+        const { profile, prediction, risk, points, anchorLatLng, sd } = tacLastResult;
+        const lastIncidentes = points.slice(-15).reverse().map(p => {
+            const r = p.report;
+            const fecha = p.date ? p.date.toLocaleDateString('es-PE') : (r.fechaHallazgo || '?');
+            return `- ${fecha} ${r.horaHallazgo || ''} | ${r.tipoEvento || 'N/D'} | criticidad ${r.nivelCriticidad || '?'} | ${r.geoReferencia || r.sede || ''}`;
+        }).join('\n');
+        return `DATOS DEL ANALISIS TACTICO GEOGRAFICO (RIS):
+- Incidentes analizados: ${points.length}
+- Punto de anclaje (centro medio Gottlieb): ${anchorLatLng.lat.toFixed(5)}, ${anchorLatLng.lng.toFixed(5)}
+- Radio de dispersion 1sigma: ${Math.round(sd)} m (2sigma: ${Math.round(sd*2)} m, 3sigma: ${Math.round(sd*3)} m)
+- Movilidad estimada (Spider Mean): ${profile.movilidad}
+- Patron horario dominante: ${profile.patronHorario}
+- Modus operandi / tipo de evento dominante: ${profile.tipoTop} (${profile.tipoTopCount} casos)
+- Nivel de planificacion estimado: ${profile.planificacion}
+- Prediccion MSD del proximo evento: ${prediction ? `fecha aproximada ${prediction.predDate.toLocaleDateString('es-PE')}, ventana horaria ${prediction.ventana}, confianza ${prediction.confianza}` : 'sin datos suficientes para proyectar'}
+- Nivel de riesgo global: ${risk.nivel} (score ${risk.score}/100)
+
+ULTIMOS INCIDENTES GEORREFERENCIADOS (mas recientes primero):
+${lastIncidentes}`;
+    }
+
+    async function tacGenerarAnalisisIA() {
+        if (!tacLastResult) { showToast('Primero genere el analisis tactico (datos reales o demo)', 'warning'); return; }
+        const btn = document.getElementById('tacAIBtn');
+        const out = document.getElementById('tacAIOutput');
+        if (out) out.innerHTML = '<p class="normal-case text-slate-400"><i class="fas fa-spinner fa-spin mr-1"></i> Generando analisis con IA...</p>';
+        if (btn) btn.disabled = true;
+        try {
+            const context = tacBuildAIContext();
+            const userMsg = `Con base en estos datos, redacta un ANALISIS TACTICO AVANZADO (maximo 200 palabras) con: 1) interpretacion del patron espacial y temporal, 2) hipotesis tactica sobre el nivel de riesgo, 3) tres recomendaciones priorizadas adicionales a las ya generadas por el sistema. No repitas literalmente las recomendaciones del sistema.\n\n${context}`;
+            const text = await tacCallAI([{ role: 'user', content: userMsg }], TAC_AI_SYSTEM);
+            if (out) out.innerHTML = `<div class="normal-case text-slate-200 leading-relaxed whitespace-pre-line">${tacEscapeHtml(text)}</div>`;
+        } catch (err) {
+            console.error('tacGenerarAnalisisIA error', err);
+            const msg = err && err.message ? err.message : 'Error desconocido';
+            if (out) out.innerHTML = `<p class="normal-case text-red-400"><i class="fas fa-triangle-exclamation mr-1"></i> ${tacEscapeHtml(msg)}. ${tacAIErrorHint()}</p>`;
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function tacRenderChat() {
+        const el = document.getElementById('tacChatMessages');
+        if (!el) return;
+        let html = '';
+        if (tacChatHistory.length === 0 && !tacChatLoading) {
+            html = '<p class="text-slate-500 text-[10.5px] normal-case p-2">Pregunte, por ejemplo: "¿Que rutas de patrullaje priorizo esta semana?" o "¿Como cambia el riesgo si refuerzo la vigilancia nocturna?"</p>';
+        } else {
+            html = tacChatHistory.map(m => {
+                if (m.role === 'assistant' && typeof m.content === 'string' && m.content.startsWith('__ERROR__')) {
+                    const errMsg = m.content.slice('__ERROR__'.length);
+                    return `<div class="flex justify-start mb-2"><div class="max-w-[90%] rounded-lg px-2.5 py-1.5 text-[10.5px] normal-case leading-relaxed bg-red-950/60 text-red-300 border border-red-800"><i class="fas fa-triangle-exclamation mr-1"></i>${tacEscapeHtml(errMsg)}. ${tacAIErrorHint()}</div></div>`;
+                }
+                return `
+                <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} mb-2">
+                    <div class="max-w-[85%] rounded-lg px-2.5 py-1.5 text-[10.5px] normal-case leading-relaxed ${m.role === 'user' ? 'bg-sky-700 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}">${tacEscapeHtml(m.content).replace(/\n/g, '<br>')}</div>
+                </div>`;
+            }).join('');
+            if (tacChatLoading) {
+                html += `<div class="flex justify-start mb-2"><div class="rounded-lg px-3 py-2 bg-slate-800 border border-slate-700 text-slate-400 text-[10.5px]"><i class="fas fa-spinner fa-spin mr-1"></i> Analizando...</div></div>`;
+            }
+        }
+        el.innerHTML = html;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    async function tacEnviarConsultaIA() {
+        const input = document.getElementById('tacChatInput');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text || tacChatLoading) return;
+        if (!tacLastResult) { showToast('Primero genere el analisis tactico (datos reales o demo)', 'warning'); return; }
+        tacChatHistory.push({ role: 'user', content: text });
+        input.value = '';
+        tacChatLoading = true;
+        tacRenderChat();
+        const sendBtn = document.getElementById('tacChatSendBtn');
+        if (sendBtn) sendBtn.disabled = true;
+        try {
+            const context = tacBuildAIContext();
+            const systemWithContext = TAC_AI_SYSTEM + '\n\n' + context;
+            const apiMessages = tacChatHistory.filter(m => !(typeof m.content === 'string' && m.content.startsWith('__ERROR__'))).map(m => ({ role: m.role, content: m.content }));
+            const reply = await tacCallAI(apiMessages, systemWithContext);
+            tacChatHistory.push({ role: 'assistant', content: reply });
+        } catch (err) {
+            console.error('tacEnviarConsultaIA error', err);
+            const msg = err && err.message ? err.message : 'Error desconocido';
+            tacChatHistory.push({ role: 'assistant', content: '__ERROR__' + msg });
+        }
+        tacChatLoading = false;
+        if (sendBtn) sendBtn.disabled = false;
+        tacRenderChat();
+    }
+
+    function tacChatKeydown(ev) {
+        if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); tacEnviarConsultaIA(); }
+    }
+
+    function tacClearChat() {
+        tacChatHistory = [];
+        tacChatLoading = false;
+        tacRenderChat();
+    }
+
     // ==================== UI HELPERS ====================
     function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
@@ -2907,7 +4258,11 @@
         generatePDF, generateExcel,
         shareWhatsApp, shareEmail, printReport, shareNative,
         toggleSync, showMenu,
-        openDashboardDetail, closeDashboardDetail, renderDashboardDetailList,
+        openDashboardDetail, closeDashboardDetail, renderDashboardDetailList, exportDashboardDetail, stopAudioStream,
+        capturarGPS, abrirGoogleMapsSatelite, recalcTactico, toggleDemoTactico,
+        tacGenerarAnalisisIA, tacEnviarConsultaIA, tacChatKeydown, tacClearChat,
+        onAiProviderChange, guardarConfigIA, probarConexionIA,
+        eliminarReporteIndividual, limpiarHistorialReportes,
         pinBuffer: ''
     };
 
